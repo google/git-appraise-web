@@ -67,10 +67,10 @@ type repoListItem struct {
 }
 
 type repoCache struct {
-	Repo        repository.Repo
-	RepoState   string
-	OpenReviews []review.Summary
-	AllReviews  []review.Summary
+	Repo          repository.Repo
+	RepoState     string
+	OpenReviews   []review.Summary
+	ClosedReviews []review.Summary
 }
 
 func (r *repoCache) update() error {
@@ -81,14 +81,18 @@ func (r *repoCache) update() error {
 	if stateHash == r.RepoState {
 		return nil
 	}
-	r.AllReviews = review.ListAll(r.Repo)
+	allReviews := review.ListAll(r.Repo)
 	var openReviews []review.Summary
-	for _, review := range r.AllReviews {
-		if !review.Submitted {
+	var closedReviews []review.Summary
+	for _, review := range allReviews {
+		if review.Submitted {
+			closedReviews = append(closedReviews, review)
+		} else {
 			openReviews = append(openReviews, review)
 		}
 	}
 	r.OpenReviews = openReviews
+	r.ClosedReviews = closedReviews
 	r.RepoState = stateHash
 	return nil
 }
@@ -113,12 +117,12 @@ func serveReposJson(repos map[string]*repoCache, w http.ResponseWriter, r *http.
 	serveJson(reposList, w)
 }
 
-func serveAllReviewsJson(cache *repoCache, w http.ResponseWriter, r *http.Request) {
+func serveClosedReviewsJson(cache *repoCache, w http.ResponseWriter, r *http.Request) {
 	if err := cache.update(); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	serveJson(cache.AllReviews, w)
+	serveJson(cache.ClosedReviews, w)
 }
 
 func serveOpenReviewsJson(cache *repoCache, w http.ResponseWriter, r *http.Request) {
@@ -127,6 +131,19 @@ func serveOpenReviewsJson(cache *repoCache, w http.ResponseWriter, r *http.Reque
 		return
 	}
 	serveJson(cache.OpenReviews, w)
+}
+
+func serveReviewDetailsJson(reviewDetails *review.Review, w http.ResponseWriter, r *http.Request) {
+	serveJson(reviewDetails, w)
+}
+
+func serveReviewDiff(reviewDetails *review.Review, w http.ResponseWriter, r *http.Request) {
+	diff, err := reviewDetails.GetDiff()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Write([]byte(diff))
 }
 
 func getRepoCache(repos map[string]*repoCache, r *http.Request) (*repoCache, error) {
@@ -156,6 +173,25 @@ func handleRepoFunc(repos map[string]*repoCache, f repoFunc) func(w http.Respons
 	}
 }
 
+// Type for review-specific HTTP handlers.
+type reviewFunc func(reviewDetails *review.Review, w http.ResponseWriter, r *http.Request)
+
+func handleReviewFunc(repos map[string]*repoCache, f reviewFunc) func(w http.ResponseWriter, r *http.Request) {
+	return handleRepoFunc(repos, func(repo *repoCache, w http.ResponseWriter, r *http.Request) {
+		reviewParam := r.URL.Query().Get("review")
+		if reviewParam == "" {
+			http.Error(w, "No review specified", http.StatusBadRequest)
+			return
+		}
+		reviewDetails, err := review.Get(repo.Repo, reviewParam)
+		if err != nil {
+			http.Error(w, "Invalid review specified", http.StatusBadRequest)
+			return
+		}
+		f(reviewDetails, w, r)
+	})
+}
+
 // Serve our (fixed set of) URL paths
 func serveRepos(repos map[string]*repoCache) {
 	http.HandleFunc("/_ah/health",
@@ -166,8 +202,10 @@ func serveRepos(repos map[string]*repoCache) {
 	http.HandleFunc("/repos", func(w http.ResponseWriter, r *http.Request) {
 		serveReposJson(repos, w, r)
 	})
-	http.HandleFunc("/all_reviews", handleRepoFunc(repos, serveAllReviewsJson))
+	http.HandleFunc("/closed_reviews", handleRepoFunc(repos, serveClosedReviewsJson))
 	http.HandleFunc("/open_reviews", handleRepoFunc(repos, serveOpenReviewsJson))
+	http.HandleFunc("/review_details", handleReviewFunc(repos, serveReviewDetailsJson))
+	http.HandleFunc("/review_diff", handleReviewFunc(repos, serveReviewDiff))
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		if len(repos) == 1 {
 			for id := range repos {
