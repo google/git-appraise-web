@@ -117,19 +117,26 @@ func serveReposJson(repos map[string]*repoCache, w http.ResponseWriter, r *http.
 	serveJson(reposList, w)
 }
 
-func serveClosedReviewsJson(cache *repoCache, w http.ResponseWriter, r *http.Request) {
-	if err := cache.update(); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+type repoSummary struct {
+	Path              string
+	OpenReviewCount   int
+	ClosedReviewCount int
+}
+
+func serveRepoSummaryJson(cache *repoCache, w http.ResponseWriter, r *http.Request) {
+	summary := repoSummary{
+		Path:              cache.Repo.GetPath(),
+		OpenReviewCount:   len(cache.OpenReviews),
+		ClosedReviewCount: len(cache.ClosedReviews),
 	}
+	serveJson(summary, w)
+}
+
+func serveClosedReviewsJson(cache *repoCache, w http.ResponseWriter, r *http.Request) {
 	serveJson(cache.ClosedReviews, w)
 }
 
 func serveOpenReviewsJson(cache *repoCache, w http.ResponseWriter, r *http.Request) {
-	if err := cache.update(); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
 	serveJson(cache.OpenReviews, w)
 }
 
@@ -169,6 +176,10 @@ func handleRepoFunc(repos map[string]*repoCache, f repoFunc) func(w http.Respons
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
+		if err := cache.update(); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 		f(cache, w, r)
 	}
 }
@@ -202,6 +213,7 @@ func serveRepos(repos map[string]*repoCache) {
 	http.HandleFunc("/repos", func(w http.ResponseWriter, r *http.Request) {
 		serveReposJson(repos, w, r)
 	})
+	http.HandleFunc("/repo_summary", handleRepoFunc(repos, serveRepoSummaryJson))
 	http.HandleFunc("/closed_reviews", handleRepoFunc(repos, serveClosedReviewsJson))
 	http.HandleFunc("/open_reviews", handleRepoFunc(repos, serveOpenReviewsJson))
 	http.HandleFunc("/review_details", handleReviewFunc(repos, serveReviewDetailsJson))
