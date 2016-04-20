@@ -22,11 +22,11 @@ Build the binary:
 
 And then launch it:
 
-    bin/git-appraise-web
+    ${GOPATH}/bin/git-appraise-web
 
 The tool requires that it be started in a directory that contains at least one git repo, and it shows the
 reviews from every git repo under that directory.
 
 The UI is a webserver which defaults to listening on port 8080. To use a different port, pass it as an argument to the "--port" flag:
 
-    bin/git-appraise-web --port=12345
+    ${GOPATH}/bin/git-appraise-web --port=12345
