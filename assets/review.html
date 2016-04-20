@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 Google Inc. All rights reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+<html>
+<head>
+  <title>Review Details</title>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.26/angular.min.js"></script>
+</head>
+<body ng-app="gitAppraiseWeb">
+  <div ng-controller="getReview">
+    <div class="container">
+      <div class="row">
+	<div class="col-md-2">
+          <b>Revision:</b>
+	</div>
+	<div class="col-md-4">
+          {{details.revision}}
+	</div>
+      </div>
+      <div class="row">
+	<div class="col-md-2">
+          <b>Requester:</b>
+	</div>
+	<div class="col-md-4">
+          {{details.request.requester}}
+	</div>
+      </div>
+      <div class="row">
+	<div class="col-md-2">
+          <b>Review Ref:</b>
+	</div>
+	<div class="col-md-4">
+          {{details.request.reviewRef}}
+	</div>
+      </div>
+      <div class="row">
+	<div class="col-md-2">
+          <b>Target Ref:</b>
+	</div>
+	<div class="col-md-4">
+          {{details.request.targetRef}}
+	</div>
+      </div>
+      <div class="row">
+	<div class="col-md-2">
+          <b>Description:</b>
+	</div>
+	<div class="col-md-4">
+          {{details.request.description}}
+	</div>
+      </div>
+      <div class="row">
+	<div class="col-md-2">
+          <b>Diff:</b>
+	</div>
+	<div class="col-md-4">
+          {{diff}}
+	</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/reviews.js"></script>
+</body>
+</html>

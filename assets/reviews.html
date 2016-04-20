@@ -16,21 +16,31 @@ limitations under the License.
 -->
 <html>
 <head>
-  <title>Repository List</title>
+  <title>Review List</title>
   <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.26/angular.min.js"></script>
 </head>
 <body ng-app="gitAppraiseWeb">
-  <div ng-controller="listRepos">
+  <div ng-controller="listReviews">
     <div class="container">
       <div class="row header-bar-lighter">
         <div class="col-md-12">
-          <b>Repositories:</b>
+          <b>Open Reviews:</b>
         </div>
       </div>
-      <div class="row alternate_row" ng-repeat="repo in repositories">
+      <div class="row alternate_row" ng-repeat="review in openReviews">
         <div class="col-md-12">
-          <a href="/static/reviews.html#?repo={{repo.ID}}">{{repo.Path}}</a>
+          <a href="/static/review.html#?repo={{repo}}&review={{review.revision}}">{{review.summary}}</a>
         </div>
+      </div>
+      <div class="row header-bar-lighter">
+        <div class="col-md-12">
+          <b>Closed Reviews:</b>
+        </div>
+      </div>
+      <div class="row alternate_row" ng-repeat="review in closedReviews">
+        <div class="col-md-12">
+          <a href="/static/review.html#?repo={{repo}}&review={{review.revision}}">{{review.summary}}</a>
+         </div>
       </div>
     </div>
   </div>
