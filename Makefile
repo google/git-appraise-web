@@ -12,6 +12,7 @@ fmt:
 
 assets: FORCE
 	go get -u github.com/jteeuwen/go-bindata/...
+	rm assets/*~ 2>/dev/null || true
 	$(GOPATH)/bin/go-bindata -pkg assets -o assets/assets.go assets/
 
 FORCE:
