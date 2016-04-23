@@ -33,6 +33,18 @@ type RepoListItem struct {
 }
 type ReposList []RepoListItem
 
+type RepoSummary struct {
+	Path              string `json:"path"`
+	OpenReviewCount   int    `json:"openReviewCount"`
+	ClosedReviewCount int    `json:"closedReviewCount"`
+}
+
+type DiffSummary struct {
+	LeftHandSide  string `json:"leftHandSide"`
+	RightHandSide string `json:"rightHandSide"`
+	Contents      string `json:"contents"`
+}
+
 type RepoCacheItem struct {
 	Repo          repository.Repo
 	RepoState     string
@@ -128,12 +140,6 @@ func (cache RepoCache) ServeListReposJson(w http.ResponseWriter, r *http.Request
 	serveJson(reposList, w)
 }
 
-type RepoSummary struct {
-	Path              string `json:"path"`
-	OpenReviewCount   int    `json:"openReviewCount"`
-	ClosedReviewCount int    `json:"closedReviewCount"`
-}
-
 func (cache RepoCache) ServeRepoSummaryJson(w http.ResponseWriter, r *http.Request) {
 	repoCacheItem, err := cache.GetRepoCacheItem(r)
 	if err != nil {
@@ -175,18 +181,38 @@ func (cache RepoCache) ServeReviewDetailsJson(w http.ResponseWriter, r *http.Req
 	serveJson(reviewDetails, w)
 }
 
+func getDiffSummary(reviewDetails *review.Review) (*DiffSummary, error) {
+	lhs, err := reviewDetails.GetBaseCommit()
+	if err != nil {
+		return nil, err
+	}
+	rhs, err := reviewDetails.GetHeadCommit()
+	if err != nil {
+		return nil, err
+	}
+	diff, err := reviewDetails.GetDiff()
+	if err != nil {
+		return nil, err
+	}
+	return &DiffSummary{
+		LeftHandSide:  lhs,
+		RightHandSide: rhs,
+		Contents:      diff,
+	}, nil
+}
+
 func (cache RepoCache) ServeReviewDiff(w http.ResponseWriter, r *http.Request) {
 	reviewDetails, err := cache.GetReview(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	diff, err := reviewDetails.GetDiff()
+	diffSummary, err := getDiffSummary(reviewDetails)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	w.Write([]byte(diff))
+	serveJson(diffSummary, w)
 }
 
 func (cache RepoCache) ServeEntryPointRedirect(w http.ResponseWriter, r *http.Request) {
