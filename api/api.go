@@ -28,8 +28,8 @@ import (
 )
 
 type RepoListItem struct {
-	ID   string
-	Path string
+	ID   string `json:"id"`
+	Path string `json:"path"`
 }
 type ReposList []RepoListItem
 
@@ -129,9 +129,9 @@ func (cache RepoCache) ServeListReposJson(w http.ResponseWriter, r *http.Request
 }
 
 type RepoSummary struct {
-	Path              string
-	OpenReviewCount   int
-	ClosedReviewCount int
+	Path              string `json:"path"`
+	OpenReviewCount   int    `json:"openReviewCount"`
+	ClosedReviewCount int    `json:"closedReviewCount"`
 }
 
 func (cache RepoCache) ServeRepoSummaryJson(w http.ResponseWriter, r *http.Request) {

@@ -16,53 +16,83 @@ limitations under the License.
 
 var gitAppraiseWeb=angular.module("gitAppraiseWeb", []);
 
+// Get a repository name from the full path.
+function getLastPathElement(path) {
+  var slashIndex = path.lastIndexOf("/");
+  if (slashIndex > 0) {
+    return path.substring(slashIndex+1, path.length);
+  }
+  return path;
+}
+
+// Get a review summary from the full description.
+function getSummary(desc) {
+  var result = desc;
+  var newlineIndex = desc.indexOf("\n");
+  if (newlineIndex > 0) {
+    result = desc.substring(0, newlineIndex);
+  }
+  if (result.length > 80) {
+    result = result.substring(0, 80);
+  }
+  return result;
+}
+
 gitAppraiseWeb.controller("listRepos", function($scope,$http) {
-    $http.get("/api/repos").success(
-	function(response) {$scope.repositories = response;});
+  $http.get("/api/repos").success(
+    function(response) {$scope.repositories = processListReposResponse(response);});
+
+  function processListReposResponse(response) {
+    var repos = [];
+    for (var i in response) {
+      var path = response[i].path;
+      repos.push(new Repo(response[i].id, getLastPathElement(path)));
+    }
+    return repos;
+  }
+
+  function Repo(id, name) {
+    this.id = id;
+    this.name = name;
+  }
 });
 
 gitAppraiseWeb.controller("listReviews", function($scope,$http,$location) {
     var repo = $location.search()['repo'];
     $scope.repo = repo;
+    $http.get("/api/repo_summary?repo=" + repo).success(
+        function(response) {$scope.path = getLastPathElement(response.path);});
     $http.get("/api/open_reviews?repo=" + repo).success(
-	function(response) {$scope.openReviews = processListReviewsResponse(response);});
+        function(response) {$scope.openReviews = processListReviewsResponse(response);});
     $http.get("/api/closed_reviews?repo=" + repo).success(
-	function(response) {$scope.closedReviews = processListReviewsResponse(response);});
+        function(response) {$scope.closedReviews = processListReviewsResponse(response);});
 
     function processListReviewsResponse(response) {
-	var reviews = [];
-	for (var i in response) {
-	    var revision = response[i].revision;
-	    var desc = response[i].request.description;
-	    reviews.push(new Review(revision, desc, getSummary(desc)));
-	}
-	return reviews;
+        var reviews = [];
+        for (var i in response) {
+            var revision = response[i].revision;
+            var timestamp = response[i].request.timestamp;
+            var desc = response[i].request.description;
+            reviews.push(new Review(revision, timestamp, desc, getSummary(desc)));
+        }
+        return reviews;
     }
 
-    function getSummary(desc) {
-	var result = desc;
-	var newlineIndex = desc.indexOf("\n");
-	if (newlineIndex > 0) {
-	    result = desc.substring(0, newlineIndex);
-	}
-	if (result.length > 80) {
-	    result = result.substring(0, 80);
-	}
-	return result;
-    }
-
-    function Review(revision, desc, summary) {
-	this.revision = revision;
-	this.desc = desc;
-	this.summary = summary;
+    function Review(revision, timestamp, desc, summary) {
+        this.revision = revision;
+	this.timestamp = new Date(parseInt(timestamp) * 1000).toString();
+        this.desc = desc;
+        this.summary = summary;
     }
 });
 
 gitAppraiseWeb.controller("getReview", function($scope,$http,$location) {
     var repo = $location.search()['repo'];
     var review = $location.search()['review'];
+    $http.get("/api/repo_summary?repo=" + repo).success(
+        function(response) {$scope.path = getLastPathElement(response.path);});
     $http.get("/api/review_details?repo=" + repo + "&review=" + review).success(
-	function(response) {$scope.details = response;});
+        function(response) {$scope.details = response;});
     $http.get("/api/review_diff?repo=" + repo + "&review=" + review).success(
-	function(response) {$scope.diff = response;});
+        function(response) {$scope.diff = response;});
 });

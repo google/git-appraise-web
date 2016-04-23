@@ -17,58 +17,59 @@ limitations under the License.
 <html>
 <head>
   <title>Review Details</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="/static/reviews.css" />
   <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.26/angular.min.js"></script>
 </head>
 <body ng-app="gitAppraiseWeb">
   <div ng-controller="getReview">
     <div class="container">
       <div class="row">
-	<div class="col-md-2">
-          <b>Revision:</b>
-	</div>
-	<div class="col-md-4">
-          {{details.revision}}
-	</div>
+        <div class="col-md-12">
+          <h1 class="text-center csblue">Repository: {{path}}</h1>
+        </div>
+      </div>
+      <div class="row header-bar">
+        <div class="col-md-12">
+          <b>Revision: {{details.revision}}</b>
+        </div>
       </div>
       <div class="row">
-	<div class="col-md-2">
+        <div class="col-md-2">
           <b>Requester:</b>
-	</div>
-	<div class="col-md-4">
+        </div>
+        <div class="col-md-10">
           {{details.request.requester}}
-	</div>
+        </div>
       </div>
       <div class="row">
-	<div class="col-md-2">
+        <div class="col-md-2">
           <b>Review Ref:</b>
-	</div>
-	<div class="col-md-4">
+        </div>
+        <div class="col-md-10">
           {{details.request.reviewRef}}
-	</div>
+        </div>
       </div>
       <div class="row">
-	<div class="col-md-2">
+        <div class="col-md-2">
           <b>Target Ref:</b>
-	</div>
-	<div class="col-md-4">
+        </div>
+        <div class="col-md-10">
           {{details.request.targetRef}}
-	</div>
+        </div>
       </div>
       <div class="row">
-	<div class="col-md-2">
+        <div class="col-md-2">
           <b>Description:</b>
-	</div>
-	<div class="col-md-4">
-          {{details.request.description}}
-	</div>
+        </div>
+        <div class="col-md-10">
+          <div class="desc">{{details.request.description}}</div>
+        </div>
       </div>
       <div class="row">
-	<div class="col-md-2">
-          <b>Diff:</b>
-	</div>
-	<div class="col-md-4">
-          {{diff}}
-	</div>
+        <div class="col-md-12">
+          <pre><code lang="diff">{{diff}}</code></pre>
+        </div>
       </div>
     </div>
   </div>
