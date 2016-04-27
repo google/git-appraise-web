@@ -43,6 +43,71 @@ function friendlyTimestamp(timestamp) {
   return new Date(parseInt(timestamp) * 1000).toString();
 }
 
+function parseUnifiedDiff(diff) {
+  var fileDiffs = diff.split("\ndiff --git ");
+  var files = [];
+  for (var f in fileDiffs) {
+    files.push(parseFileDiff(fileDiffs[f]));
+  }
+  return files;
+
+  function parseFileDiff(fileDiff) {
+    var fileLines = fileDiff.split("\n");
+    var lhsFileName = "";
+    var rhsFileName = "";
+    var lhsNumber = 0;
+    var rhsNumber = 0;
+    var lines = [];
+    for (var i in fileLines) {
+      var text = fileLines[i];
+      if (text.startsWith("--- ")) {
+	lhsFileName = text.substring(4);
+      } else if (text.startsWith("+++ ")) {
+	rhsFileName = text.substring(4);
+      } else if (text.startsWith("@@ ")) {
+        var fromLinePart = text.substring(4, text.indexOf(","));
+        var toLinePart = text.substring(text.indexOf("+"), text.lastIndexOf(","));
+        var nextLhsNumber = parseInt(fromLinePart);
+        var omittedCount = nextLhsNumber - lhsNumber;
+        lhsNumber = nextLhsNumber;
+	rhsNumber = parseInt(toLinePart);
+        if (omittedCount > 0) {
+          lines.push(
+            new DiffLine(
+              lhsNumber,
+              rhsNumber,
+              "omitted",
+              "Skipped " + omittedCount + " unchanged lines"));
+        }
+      } else if (text.startsWith("-")) {
+        lines.push(new DiffLine(lhsNumber, rhsNumber, "removed", text.substring(1)));
+        lhsNumber++;
+      } else if (text.startsWith("+")) {
+        lines.push(new DiffLine(lhsNumber, rhsNumber, "added", text.substring(1)));
+        rhsNumber++;
+      } else if (text.startsWith(" ")) {
+        lines.push(new DiffLine(lhsNumber, rhsNumber, "unchanged", text.substring(1)));
+        lhsNumber++;
+        rhsNumber++;
+      }
+    }
+    return new File(lhsFileName, rhsFileName, lines);
+  }
+
+  function DiffLine(lhsNumber, rhsNumber, status, text) {
+    this.lhsNumber = lhsNumber;
+    this.rhsNumber = rhsNumber;
+    this.status = status;
+    this.text = text;
+  }
+
+  function File(lhsName, rhsName, diffLines) {
+    this.lhsName = lhsName;
+    this.rhsName = rhsName;
+    this.diffLines = diffLines;
+  }
+}
+
 gitAppraiseWeb.controller("listRepos", function($scope,$http) {
   $http.get("/api/repos").success(
     function(response) {$scope.repositories = processListReposResponse(response);});
@@ -99,7 +164,10 @@ gitAppraiseWeb.controller("getReview", function($scope,$http,$location) {
   $http.get("/api/review_details?repo=" + repo + "&review=" + review).success(
     function(response) {$scope.details = stringifyTimestamps(response);});
   $http.get("/api/review_diff?repo=" + repo + "&review=" + review).success(
-    function(response) {$scope.diff = response;});
+    function(response) {
+      $scope.diff = response;
+      $scope.diff.files = parseUnifiedDiff(response.contents);
+    });
 
   function stringifyCommentTimestamps(commentThread) {
     var timestamp = commentThread.comment.timestamp;

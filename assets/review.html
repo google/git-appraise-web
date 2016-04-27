@@ -79,10 +79,25 @@ limitations under the License.
           <b>Diff:</b>
         </div>
       </div>
-      <div class="row">
-        <div class="col-md-12">
-          <pre><code lang="diff">{{diff.contents}}</code></pre>
-        </div>
+      <div class="container" ng-repeat="file in diff.files">
+	<div class="row filenames">
+          <div class="col-md-6">{{file.lhsName}}</div>
+          <div class="col-md-6">{{file.rhsName}}</div>
+	</div>
+	<div class="row" ng-repeat="line in file.diffLines">
+          <div class="col-md-12 omitted" ng-if="line.status == 'omitted'">{{line.text}}</div>
+          <div class="col-md-1 linenumber" ng-if="line.status == 'unchanged' || line.status == 'removed'">
+            {{line.lhsNumber}}
+          </div>
+          <div class="col-md-1 linenumber" ng-if="line.status == 'added'"></div>
+          <div class="col-md-1 linenumber" ng-if="line.status == 'unchanged' || line.status == 'added'">
+            {{line.rhsNumber}}
+          </div>
+          <div class="col-md-1 linenumber" ng-if="line.status == 'removed'"></div>
+          <div class="col-md-10 unchanged" ng-if="line.status == 'unchanged'">{{line.text}}</div>
+          <div class="col-md-10 added" ng-if="line.status == 'added'">{{line.text}}</div>
+          <div class="col-md-10 removed" ng-if="line.status == 'removed'">{{line.text}}</div>
+	</div>
       </div>
       <div class="row header-bar">
         <div class="col-md-12">

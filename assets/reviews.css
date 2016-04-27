@@ -33,3 +33,21 @@ limitations under the License.
 .desc {
   white-space: pre;
 }
+
+.omitted {
+  background-color:#f4f4f4;
+}
+
+.unchanged {
+  white-space: pre;
+}
+
+.added {
+  background-color:#a4ffa4;
+  white-space: pre;
+}
+
+.removed {
+  background-color:#ffa4a4;
+  white-space: pre;
+}
