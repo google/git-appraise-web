@@ -38,6 +38,11 @@ function getSummary(desc) {
   return result;
 }
 
+// Given a timestamp as the seconds from the unix epoch, return the human-friendly version.
+function friendlyTimestamp(timestamp) {
+  return new Date(parseInt(timestamp) * 1000).toString();
+}
+
 gitAppraiseWeb.controller("listRepos", function($scope,$http) {
   $http.get("/api/repos").success(
     function(response) {$scope.repositories = processListReposResponse(response);});
@@ -58,41 +63,61 @@ gitAppraiseWeb.controller("listRepos", function($scope,$http) {
 });
 
 gitAppraiseWeb.controller("listReviews", function($scope,$http,$location) {
-    var repo = $location.search()['repo'];
-    $scope.repo = repo;
-    $http.get("/api/repo_summary?repo=" + repo).success(
-        function(response) {$scope.path = getLastPathElement(response.path);});
-    $http.get("/api/open_reviews?repo=" + repo).success(
-        function(response) {$scope.openReviews = processListReviewsResponse(response);});
-    $http.get("/api/closed_reviews?repo=" + repo).success(
-        function(response) {$scope.closedReviews = processListReviewsResponse(response);});
+  var repo = $location.search()['repo'];
+  $scope.repo = repo;
+  $http.get("/api/repo_summary?repo=" + repo).success(
+    function(response) {$scope.path = getLastPathElement(response.path);});
+  $http.get("/api/open_reviews?repo=" + repo).success(
+    function(response) {$scope.openReviews = processListReviewsResponse(response);});
+  $http.get("/api/closed_reviews?repo=" + repo).success(
+    function(response) {$scope.closedReviews = processListReviewsResponse(response);});
 
-    function processListReviewsResponse(response) {
-        var reviews = [];
-        for (var i in response) {
-            var revision = response[i].revision;
-            var timestamp = response[i].request.timestamp;
-            var desc = response[i].request.description;
-            reviews.push(new Review(revision, timestamp, desc, getSummary(desc)));
-        }
-        return reviews;
+  function processListReviewsResponse(response) {
+    var reviews = [];
+    for (var i in response) {
+      var revision = response[i].revision;
+      var timestamp = response[i].request.timestamp;
+      var desc = response[i].request.description;
+      reviews.push(new Review(revision, timestamp, desc, getSummary(desc)));
     }
+    return reviews;
+  }
 
-    function Review(revision, timestamp, desc, summary) {
-        this.revision = revision;
-	this.timestamp = new Date(parseInt(timestamp) * 1000).toString();
-        this.desc = desc;
-        this.summary = summary;
-    }
+  function Review(revision, timestamp, desc, summary) {
+    this.revision = revision;
+    this.timestamp = friendlyTimestamp(timestamp);
+    this.desc = desc;
+    this.summary = summary;
+  }
 });
 
 gitAppraiseWeb.controller("getReview", function($scope,$http,$location) {
-    var repo = $location.search()['repo'];
-    var review = $location.search()['review'];
-    $http.get("/api/repo_summary?repo=" + repo).success(
-        function(response) {$scope.path = getLastPathElement(response.path);});
-    $http.get("/api/review_details?repo=" + repo + "&review=" + review).success(
-        function(response) {$scope.details = response;});
-    $http.get("/api/review_diff?repo=" + repo + "&review=" + review).success(
-        function(response) {$scope.diff = response;});
+  var repo = $location.search()['repo'];
+  var review = $location.search()['review'];
+  $http.get("/api/repo_summary?repo=" + repo).success(
+    function(response) {$scope.path = getLastPathElement(response.path);});
+  $http.get("/api/review_details?repo=" + repo + "&review=" + review).success(
+    function(response) {$scope.details = stringifyTimestamps(response);});
+  $http.get("/api/review_diff?repo=" + repo + "&review=" + review).success(
+    function(response) {$scope.diff = response;});
+
+  function stringifyCommentTimestamps(commentThread) {
+    var timestamp = commentThread.comment.timestamp;
+    commentThread.comment.timestamp = friendlyTimestamp(timestamp);
+    for (var i in commentThread.children) {
+      stringifyCommentTimestamps(commentThread.children[i]);
+    }
+  }
+
+  function stringifyTimestamps(reviewDetails) {
+    for (var i in reviewDetails.reports) {
+      var report = reviewDetails.reports[i];
+      var timestamp = report.timestamp;
+      report.timestamp = friendlyTimestamp(timestamp);
+    }
+    for (var i in reviewDetails.comments) {
+      stringifyCommentTimestamps(reviewDetails.comments[i]);
+    }
+    return reviewDetails;
+  }
 });

@@ -31,7 +31,15 @@ limitations under the License.
       </div>
       <div class="row header-bar">
         <div class="col-md-12">
-          <b>Revision: {{details.revision}}</b>
+          <b>Details:</b>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-2">
+          <b>Revision:</b>
+        </div>
+        <div class="col-md-10">
+          {{details.revision}}
         </div>
       </div>
       <div class="row">
@@ -66,9 +74,45 @@ limitations under the License.
           <div class="desc">{{details.request.description}}</div>
         </div>
       </div>
+      <div class="row header-bar">
+        <div class="col-md-12">
+          <b>Diff:</b>
+        </div>
+      </div>
       <div class="row">
         <div class="col-md-12">
           <pre><code lang="diff">{{diff.contents}}</code></pre>
+        </div>
+      </div>
+      <div class="row header-bar">
+        <div class="col-md-12">
+          <b>Continuous Integration:</b>
+        </div>
+      </div>
+      <div class="row alternate_row" ng-repeat="report in details.reports" ng-if="report.status">
+        <div class="col-md-4">{{report.timestamp}}</div>
+        <div class="col-md-4">{{report.agent}}</div>
+        <div class="col-md-4" ng-if="report.url">
+          <a href="{{report.url}}">{{report.status}}</a>
+        </div>
+        <div class="col-md-4" ng-if="!report.url">{{report.status}}</div>
+      </div>
+      <div class="row header-bar">
+        <div class="col-md-12">
+          <b>Discussion:</b>
+        </div>
+      </div>
+      <div class="row" ng-repeat="thread in details.comments">
+        <div class="container">
+          <div class="row">
+            <div class="col-md-4">Timestamp:</div>
+            <div class="col-md-8">{{thread.comment.timestamp}}</div>
+          </div>
+          <div class="row">
+            <div class="col-md-4">Author:</div>
+            <div class="col-md-8">{{thread.comment.author}}</div>
+          </div>
+          <div class="row"><pre>{{thread.comment.description}}</pre></div>
         </div>
       </div>
     </div>
