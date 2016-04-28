@@ -53,24 +53,25 @@ function parseUnifiedDiff(diff) {
 
   function parseFileDiff(fileDiff) {
     var fileLines = fileDiff.split("\n");
-    var lhsFileName = "";
-    var rhsFileName = "";
+    var fileNames = fileLines[0].split(" ");
+    var rhsFileName = fileNames[fileNames.length-1];
+    var lhsFileName = fileNames[fileNames.length-2];
     var lhsNumber = 0;
     var rhsNumber = 0;
     var lines = [];
     for (var i in fileLines) {
       var text = fileLines[i];
       if (text.startsWith("--- ")) {
-	lhsFileName = text.substring(4);
+        lhsFileName = text.substring(4);
       } else if (text.startsWith("+++ ")) {
-	rhsFileName = text.substring(4);
+        rhsFileName = text.substring(4);
       } else if (text.startsWith("@@ ")) {
         var fromLinePart = text.substring(4, text.indexOf(","));
         var toLinePart = text.substring(text.indexOf("+"), text.lastIndexOf(","));
         var nextLhsNumber = parseInt(fromLinePart);
         var omittedCount = nextLhsNumber - lhsNumber;
         lhsNumber = nextLhsNumber;
-	rhsNumber = parseInt(toLinePart);
+        rhsNumber = parseInt(toLinePart);
         if (omittedCount > 0) {
           lines.push(
             new DiffLine(
@@ -91,7 +92,25 @@ function parseUnifiedDiff(diff) {
         rhsNumber++;
       }
     }
-    return new File(lhsFileName, rhsFileName, lines);
+    var description = getFileDescription(lhsFileName, rhsFileName);
+    var id = "file" + files.length;
+    return new File(description, id, lines);
+  }
+
+  function getFileDescription(lhsFileName, rhsFileName) {
+    if (lhsFileName.startsWith("a/") && rhsFileName.startsWith("b/")) {
+      lhsFileName = lhsFileName.substring(2);
+      rhsFileName = rhsFileName.substring(2);
+      if (lhsFileName == rhsFileName) {
+        return "Modified " + lhsFileName;
+      } else {
+        return "Renamed " + lhsFileName + " to " + rhsFileName;
+      }
+    } else if (lhsFileName.startsWith("a/")) {
+      return "Deleted " + lhsFileName.substring(2);
+    } else {
+      return "Added " + rhsFileName.substring(2);
+    }
   }
 
   function DiffLine(lhsNumber, rhsNumber, status, text) {
@@ -101,10 +120,11 @@ function parseUnifiedDiff(diff) {
     this.text = text;
   }
 
-  function File(lhsName, rhsName, diffLines) {
-    this.lhsName = lhsName;
-    this.rhsName = rhsName;
+  function File(description, id, diffLines) {
+    this.description = description;
+    this.id = id;
     this.diffLines = diffLines;
+    this.display = true;
   }
 }
 

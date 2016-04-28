@@ -34,20 +34,25 @@ limitations under the License.
   white-space: pre;
 }
 
+.file-diff {
+  padding-right: 0px;
+  padding-left: 0px;
+}
+
 .omitted {
   background-color:#f4f4f4;
 }
 
 .unchanged {
-  white-space: pre;
+  white-space: pre-wrap;
 }
 
 .added {
   background-color:#a4ffa4;
-  white-space: pre;
+  white-space: pre-wrap;
 }
 
 .removed {
   background-color:#ffa4a4;
-  white-space: pre;
+  white-space: pre-wrap;
 }
