@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-var gitAppraiseWeb=angular.module("gitAppraiseWeb", []);
+var gitAppraiseWeb=angular.module("gitAppraiseWeb", ["ngSanitize"]);
 
 // Get a repository name from the full path.
 function getLastPathElement(path) {
@@ -182,7 +182,7 @@ gitAppraiseWeb.controller("getReview", function($scope,$http,$location) {
   $http.get("/api/repo_summary?repo=" + repo).success(
     function(response) {$scope.path = getLastPathElement(response.path);});
   $http.get("/api/review_details?repo=" + repo + "&review=" + review).success(
-    function(response) {$scope.details = stringifyTimestamps(response);});
+    function(response) {$scope.details = processReview(response);});
   $http.get("/api/review_diff?repo=" + repo + "&review=" + review).success(
     function(response) {
       $scope.diff = response;
@@ -197,6 +197,23 @@ gitAppraiseWeb.controller("getReview", function($scope,$http,$location) {
     }
   }
 
+  function generateCommentHtml(converter, commentThread) {
+    commentThread.html = converter.makeHtml(commentThread.comment.description);
+    commentThread.display = true;
+    if ('resolved' in commentThread) {
+      if (commentThread.resolved) {
+        commentThread.status = 'lgtm';
+      } else {
+        commentThread.status = 'nmw';
+      }
+    } else {
+      commentThread.status = 'fyi';
+    }
+    for (var i in commentThread.children) {
+      generateCommentHtml(converter, commentThread.children[i]);
+    }
+  }
+
   function stringifyTimestamps(reviewDetails) {
     for (var i in reviewDetails.reports) {
       var report = reviewDetails.reports[i];
@@ -205,6 +222,14 @@ gitAppraiseWeb.controller("getReview", function($scope,$http,$location) {
     }
     for (var i in reviewDetails.comments) {
       stringifyCommentTimestamps(reviewDetails.comments[i]);
+    }
+  }
+
+  function processReview(reviewDetails) {
+    stringifyTimestamps(reviewDetails);
+    converter = new showdown.Converter();
+    for (var i in reviewDetails.comments) {
+      generateCommentHtml(converter, reviewDetails.comments[i]);
     }
     return reviewDetails;
   }

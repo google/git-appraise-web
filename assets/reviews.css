@@ -39,6 +39,22 @@ limitations under the License.
   padding-left: 0px;
 }
 
+.diff-header {
+  background-color:#e4e4e4;
+}
+
+.comment-header {
+  background-color:#e4e4e4;
+}
+
+.lgtm {
+  background-color:#e4ffe4;
+}
+
+.nmw {
+  background-color:#ffe4e4;
+}
+
 .omitted {
   background-color:#f4f4f4;
 }
@@ -55,4 +71,8 @@ limitations under the License.
 .removed {
   background-color:#ffa4a4;
   white-space: pre-wrap;
+}
+
+blockquote {
+  font-size: 14px;
 }
