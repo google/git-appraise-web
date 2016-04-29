@@ -79,7 +79,18 @@ limitations under the License.
       </div>
       <div class="row header-bar">
         <div class="col-md-12">
-          <b>Diff:</b>
+          <b>Changes:</b>
+        </div>
+      </div>
+      <div class="row" ng-repeat="commit in diff.reviewCommits">
+        <div class="col-md-1">{{commit.name}}</div>
+        <div class="col-md-2">{{commit.details.time}}</div>
+        <div class="col-md-2">{{commit.details.authorEmail}}</div>
+        <div class="col-md-7">{{commit.details.summary}}</div>
+      </div>
+      <div class="row header-bar">
+        <div class="col-md-12">
+          <b>Diff: {{diff.leftHandSide}} {{diff.rightHandSide}}</b>
         </div>
       </div>
       <div class="container file-diff" ng-repeat="file in diff.files">

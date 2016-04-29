@@ -40,7 +40,7 @@ function getSummary(desc) {
 
 // Given a timestamp as the seconds from the unix epoch, return the human-friendly version.
 function friendlyTimestamp(timestamp) {
-  return new Date(parseInt(timestamp) * 1000).toString();
+  return new Date(parseInt(timestamp) * 1000).toLocaleString();
 }
 
 function parseUnifiedDiff(diff) {
@@ -187,13 +187,24 @@ gitAppraiseWeb.controller("getReview", function($scope,$http,$location) {
     function(response) {
       $scope.diff = response;
       $scope.diff.files = parseUnifiedDiff(response.contents);
+      $scope.diff.reviewCommits = friendlyCommits($scope.diff.reviewCommits);
     });
 
-  function stringifyCommentTimestamps(commentThread) {
+  function friendlyCommits(commits) {
+    for (var i in commits) {
+      var commit = commits[i];
+      commit.name = commit.id.substring(0,6);
+      commit.details.time = friendlyTimestamp(commit.details.time);
+    }
+    commits.reverse();
+    return commits
+  }
+
+  function friendlyCommentTimestamps(commentThread) {
     var timestamp = commentThread.comment.timestamp;
     commentThread.comment.timestamp = friendlyTimestamp(timestamp);
     for (var i in commentThread.children) {
-      stringifyCommentTimestamps(commentThread.children[i]);
+      friendlyCommentTimestamps(commentThread.children[i]);
     }
   }
 
@@ -214,19 +225,19 @@ gitAppraiseWeb.controller("getReview", function($scope,$http,$location) {
     }
   }
 
-  function stringifyTimestamps(reviewDetails) {
+  function friendlyTimestamps(reviewDetails) {
     for (var i in reviewDetails.reports) {
       var report = reviewDetails.reports[i];
       var timestamp = report.timestamp;
       report.timestamp = friendlyTimestamp(timestamp);
     }
     for (var i in reviewDetails.comments) {
-      stringifyCommentTimestamps(reviewDetails.comments[i]);
+      friendlyCommentTimestamps(reviewDetails.comments[i]);
     }
   }
 
   function processReview(reviewDetails) {
-    stringifyTimestamps(reviewDetails);
+    friendlyTimestamps(reviewDetails);
     converter = new showdown.Converter();
     for (var i in reviewDetails.comments) {
       generateCommentHtml(converter, reviewDetails.comments[i]);
