@@ -152,20 +152,37 @@ gitAppraiseWeb.controller("listReviews", function($scope,$http,$location) {
   $scope.repo = repo;
   $http.get("/api/repo_summary?repo=" + repo).success(
     function(response) {$scope.path = getLastPathElement(response.path);});
-  $http.get("/api/open_reviews?repo=" + repo).success(
-    function(response) {$scope.openReviews = processListReviewsResponse(response);});
-  $http.get("/api/closed_reviews?repo=" + repo).success(
-    function(response) {$scope.closedReviews = processListReviewsResponse(response);});
+  listAllReviews("/api/open_reviews?repo=" + repo, function(response){
+    $scope.openReviews = response;
+  });
+  listAllReviews("/api/closed_reviews?repo=" + repo, function(response){
+    $scope.closedReviews = response;
+  });
 
-  function processListReviewsResponse(response) {
-    var reviews = [];
-    for (var i in response) {
-      var revision = response[i].revision;
-      var timestamp = response[i].request.timestamp;
-      var desc = response[i].request.description;
+  function addPageItems(page, reviews) {
+    for (var i in page.items) {
+      var revision = page.items[i].revision;
+      var timestamp = page.items[i].request.timestamp;
+      var desc = page.items[i].request.description;
       reviews.push(new Review(revision, timestamp, desc, getSummary(desc)));
     }
-    return reviews;
+  }
+
+  function listReviewsResponseProcessor(baseQuery, callback) {
+    var reviews = [];
+    function processor(response) {
+      addPageItems(response, reviews);
+      if (response.nextPageToken) {
+        $http.get(baseQuery + "&page=" + response.nextPageToken).success(processor);
+      } else {
+        callback(reviews);
+      }
+    }
+    return processor;
+  }
+
+  function listAllReviews(baseQuery, callback) {
+    $http.get(baseQuery).success(listReviewsResponseProcessor(baseQuery, callback));
   }
 
   function Review(revision, timestamp, desc, summary) {

@@ -22,6 +22,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/google/git-appraise/repository"
 	"github.com/google/git-appraise/review"
@@ -52,10 +53,34 @@ type DiffSummary struct {
 }
 
 type RepoCacheItem struct {
-	Repo          repository.Repo
-	RepoState     string
-	OpenReviews   []review.Summary
-	ClosedReviews []review.Summary
+	Repo              repository.Repo
+	RepoState         string
+	OpenReviewCount   int
+	OpenReviews       [][]review.Summary
+	ClosedReviewCount int
+	ClosedReviews     [][]review.Summary
+}
+
+type ReviewListResponse struct {
+	Items         []review.Summary `json:"items"`
+	NextPageToken string           `json:"nextPageToken,omitEmpty"`
+}
+
+func paginate(reviews []review.Summary, maxPerPage int) [][]review.Summary {
+	var results [][]review.Summary
+	var currID int
+	var currPage []review.Summary
+	for _, r := range reviews {
+		if currID >= maxPerPage {
+			results = append(results, currPage)
+			currPage = nil
+			currID = 0
+		}
+		currPage = append(currPage, r)
+		currID++
+	}
+	results = append(results, currPage)
+	return results
 }
 
 func (r *RepoCacheItem) Update() error {
@@ -76,8 +101,10 @@ func (r *RepoCacheItem) Update() error {
 			openReviews = append(openReviews, review)
 		}
 	}
-	r.OpenReviews = openReviews
-	r.ClosedReviews = closedReviews
+	r.OpenReviewCount = len(openReviews)
+	r.OpenReviews = paginate(openReviews, 100)
+	r.ClosedReviewCount = len(closedReviews)
+	r.ClosedReviews = paginate(closedReviews, 100)
 	r.RepoState = stateHash
 	return nil
 }
@@ -154,10 +181,36 @@ func (cache RepoCache) ServeRepoSummaryJson(w http.ResponseWriter, r *http.Reque
 	}
 	summary := RepoSummary{
 		Path:              repoCacheItem.Repo.GetPath(),
-		OpenReviewCount:   len(repoCacheItem.OpenReviews),
-		ClosedReviewCount: len(repoCacheItem.ClosedReviews),
+		OpenReviewCount:   repoCacheItem.OpenReviewCount,
+		ClosedReviewCount: repoCacheItem.ClosedReviewCount,
 	}
 	serveJson(summary, w)
+}
+
+func getPageToken(r *http.Request) (page int, err error) {
+	pageParam := r.URL.Query().Get("page")
+	if pageParam != "" {
+		page, err = strconv.Atoi(pageParam)
+		if err != nil {
+			return 0, err
+		}
+	}
+	return page, nil
+}
+
+func getReviewListResponse(pageToken int, reviews [][]review.Summary) *ReviewListResponse {
+	var items []review.Summary
+	var nextPageToken string
+	if pageToken < len(reviews) {
+		items = reviews[pageToken]
+		if pageToken < len(reviews)-1 {
+			nextPageToken = strconv.Itoa(pageToken + 1)
+		}
+	}
+	return &ReviewListResponse{
+		Items:         items,
+		NextPageToken: nextPageToken,
+	}
 }
 
 func (cache RepoCache) ServeClosedReviewsJson(w http.ResponseWriter, r *http.Request) {
@@ -166,7 +219,13 @@ func (cache RepoCache) ServeClosedReviewsJson(w http.ResponseWriter, r *http.Req
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	serveJson(repoCacheItem.ClosedReviews, w)
+	pageToken, err := getPageToken(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	response := getReviewListResponse(pageToken, repoCacheItem.ClosedReviews)
+	serveJson(response, w)
 }
 
 func (cache RepoCache) ServeOpenReviewsJson(w http.ResponseWriter, r *http.Request) {
@@ -175,7 +234,13 @@ func (cache RepoCache) ServeOpenReviewsJson(w http.ResponseWriter, r *http.Reque
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	serveJson(repoCacheItem.OpenReviews, w)
+	pageToken, err := getPageToken(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	response := getReviewListResponse(pageToken, repoCacheItem.OpenReviews)
+	serveJson(response, w)
 }
 
 func (cache RepoCache) ServeReviewDetailsJson(w http.ResponseWriter, r *http.Request) {
