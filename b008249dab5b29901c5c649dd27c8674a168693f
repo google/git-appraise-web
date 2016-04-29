@@ -13,3 +13,5 @@
 {"timestamp":"1461969647","author":"ojarjur@google.com","parent":"181b05941e8d9b45fc71ee3b84163c9f565f0fc2","location":{"commit":"5ceabed7307fd6ea85a70d7bc83bd7e729674a7a"},"description":"This now displays the latest CI run for each agent.\n\nThat should be enough for a v0.","resolved":true}
 
 {"timestamp":"1461974314","author":"ojarjur@google.com","parent":"65474dbbd20f71e0e0f0513087b3ab1e0f3f460c","location":{"commit":"03cc8438690a02a5bf3e4fb8228786f407f34872"},"description":"Done","resolved":true}
+
+{"timestamp":"1461974337","author":"ojarjur@google.com","parent":"9fecc765d2315033ba7da124ea63a64bba1abbe9","location":{"commit":"03cc8438690a02a5bf3e4fb8228786f407f34872"},"description":"Done","resolved":true}
