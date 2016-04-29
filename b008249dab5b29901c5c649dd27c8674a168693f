@@ -9,3 +9,5 @@
 {"timestamp":"1461437824","author":"ojarjur@google.com","parent":"1e32c13b7b8246e38bbe3dbcb03333781042b3c8","location":{"commit":"0b12f8df46351f86a9f1f52e6cdb5c9c19721025","path":"api/api.go","range":{"startLine":184}},"description":"This is mostly done.\n\nAt least, the required minimum is done. Going beyond that\nto allowing specifying the left and right hand sides will\nrequire extending the git-appraise library.","resolved":true}
 
 {"timestamp":"1461963409","author":"ojarjur@google.com","parent":"592ee59cb82f0507db67e27ddb1f427a42609cec","location":{"commit":"39e4c2e199de365e3d42ad9d850ac6cbfe26a13b"},"description":"Actually, this didn't require any changes to the git-appraise library after all.\n\nThis is now completely done.","resolved":true}
+
+{"timestamp":"1461969647","author":"ojarjur@google.com","parent":"181b05941e8d9b45fc71ee3b84163c9f565f0fc2","location":{"commit":"5ceabed7307fd6ea85a70d7bc83bd7e729674a7a"},"description":"This now displays the latest CI run for each agent.\n\nThat should be enough for a v0.","resolved":true}
