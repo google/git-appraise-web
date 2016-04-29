@@ -39,10 +39,16 @@ type RepoSummary struct {
 	ClosedReviewCount int    `json:"closedReviewCount"`
 }
 
+type CommitOverview struct {
+	ID      string                    `json:"id"`
+	Details *repository.CommitDetails `json:"details"`
+}
+
 type DiffSummary struct {
-	LeftHandSide  string `json:"leftHandSide"`
-	RightHandSide string `json:"rightHandSide"`
-	Contents      string `json:"contents"`
+	ReviewCommits []CommitOverview `json:"reviewCommits,omitEmpty"`
+	LeftHandSide  string           `json:"leftHandSide"`
+	RightHandSide string           `json:"rightHandSide"`
+	Contents      string           `json:"contents"`
 }
 
 type RepoCacheItem struct {
@@ -181,20 +187,46 @@ func (cache RepoCache) ServeReviewDetailsJson(w http.ResponseWriter, r *http.Req
 	serveJson(reviewDetails, w)
 }
 
-func getDiffSummary(reviewDetails *review.Review) (*DiffSummary, error) {
-	lhs, err := reviewDetails.GetBaseCommit()
+func getDiffSummary(reviewDetails *review.Review, lhs, rhs string) (*DiffSummary, error) {
+	base, err := reviewDetails.GetBaseCommit()
 	if err != nil {
 		return nil, err
 	}
-	rhs, err := reviewDetails.GetHeadCommit()
+	head, err := reviewDetails.GetHeadCommit()
 	if err != nil {
 		return nil, err
 	}
-	diff, err := reviewDetails.GetDiff()
+	reviewCommits := []string{base}
+	subsequentCommits, err := reviewDetails.Repo.ListCommitsBetween(base, head)
+	if err != nil {
+		return nil, err
+	}
+	reviewCommits = append(reviewCommits, subsequentCommits...)
+	commitsMap := make(map[string]interface{})
+	var commitOverviews []CommitOverview
+	for _, commit := range reviewCommits {
+		commitsMap[commit] = nil
+		details, err := reviewDetails.Repo.GetCommitDetails(commit)
+		if err != nil {
+			return nil, err
+		}
+		commitOverviews = append(commitOverviews, CommitOverview{
+			ID:      commit,
+			Details: details,
+		})
+	}
+	if _, ok := commitsMap[lhs]; !ok {
+		lhs = base
+	}
+	if _, ok := commitsMap[rhs]; !ok {
+		rhs = head
+	}
+	diff, err := reviewDetails.Repo.Diff(lhs, rhs)
 	if err != nil {
 		return nil, err
 	}
 	return &DiffSummary{
+		ReviewCommits: commitOverviews,
 		LeftHandSide:  lhs,
 		RightHandSide: rhs,
 		Contents:      diff,
@@ -207,7 +239,9 @@ func (cache RepoCache) ServeReviewDiff(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	diffSummary, err := getDiffSummary(reviewDetails)
+	lhs := r.URL.Query().Get("lhs")
+	rhs := r.URL.Query().Get("rhs")
+	diffSummary, err := getDiffSummary(reviewDetails, lhs, rhs)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
