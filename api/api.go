@@ -22,6 +22,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"sort"
 	"strconv"
 
 	"github.com/google/git-appraise/repository"
@@ -33,6 +34,12 @@ type RepoListItem struct {
 	Path string `json:"path"`
 }
 type ReposList []RepoListItem
+
+func (repos ReposList) Len() int      { return len(repos) }
+func (repos ReposList) Swap(i, j int) { repos[i], repos[j] = repos[j], repos[i] }
+func (repos ReposList) Less(i, j int) bool {
+	return repos[i].ID < repos[j].ID
+}
 
 type RepoSummary struct {
 	Path              string `json:"path"`
@@ -170,6 +177,7 @@ func (cache RepoCache) ServeListReposJson(w http.ResponseWriter, r *http.Request
 			Path: cacheItem.Repo.GetPath(),
 		})
 	}
+	sort.Stable(reposList)
 	serveJson(reposList, w)
 }
 
