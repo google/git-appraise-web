@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 Google Inc. All rights reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+<html>
+<head>
+  <title>Review List</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="/static/reviews.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.26/angular.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.26/angular-sanitize.js"></script>
+</head>
+<body ng-app="gitAppraiseWeb">
+  <div ng-controller="listReviews">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-12">
+          <h1 class="text-center csblue">Repository: {{path}}</h1>
+        </div>
+      </div>
+      <div class="row header-bar">
+        <div class="col-md-12">
+          <b>Open Reviews:</b>
+        </div>
+      </div>
+      <div class="row alternate_row" ng-repeat="review in openReviews">
+        <div class="col-md-4">{{review.timestamp}}</div>
+        <div class="col-md-8">
+          <a href="/static/review.html#?repo={{repo}}&review={{review.revision}}">{{review.summary}}</a>
+        </div>
+      </div>
+      <div class="row header-bar">
+        <div class="col-md-12">
+          <b>Closed Reviews:</b>
+        </div>
+      </div>
+      <div class="row alternate_row" ng-repeat="review in closedReviews">
+        <div class="col-md-4">{{review.timestamp}}</div>
+        <div class="col-md-8">
+          <a href="/static/review.html#?repo={{repo}}&review={{review.revision}}">{{review.summary}}</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/reviews.js"></script>
+</body>
+</html>
