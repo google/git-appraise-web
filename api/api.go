@@ -17,10 +17,8 @@ limitations under the License.
 package api
 
 import (
-	"crypto/sha1"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 	"sort"
 	"strconv"
@@ -29,123 +27,29 @@ import (
 	"github.com/google/git-appraise/review"
 )
 
-type RepoListItem struct {
-	ID   string `json:"id"`
-	Path string `json:"path"`
-}
-type ReposList []RepoListItem
+// RepoCache encapsulates everything that the API server currently knows about every repository.
+type RepoCache map[string]*RepoDetails
 
-func (repos ReposList) Len() int      { return len(repos) }
-func (repos ReposList) Swap(i, j int) { repos[i], repos[j] = repos[j], repos[i] }
-func (repos ReposList) Less(i, j int) bool {
-	return repos[i].ID < repos[j].ID
-}
-
-type RepoSummary struct {
-	Path              string `json:"path"`
-	OpenReviewCount   int    `json:"openReviewCount"`
-	ClosedReviewCount int    `json:"closedReviewCount"`
-}
-
-type CommitOverview struct {
-	ID      string                    `json:"id"`
-	Details *repository.CommitDetails `json:"details"`
-}
-
-type DiffSummary struct {
-	ReviewCommits []CommitOverview `json:"reviewCommits,omitEmpty"`
-	LeftHandSide  string           `json:"leftHandSide"`
-	RightHandSide string           `json:"rightHandSide"`
-	Contents      string           `json:"contents"`
-}
-
-type RepoCacheItem struct {
-	Repo              repository.Repo
-	RepoState         string
-	OpenReviewCount   int
-	OpenReviews       [][]review.Summary
-	ClosedReviewCount int
-	ClosedReviews     [][]review.Summary
-}
-
-type ReviewListResponse struct {
-	Items         []review.Summary `json:"items"`
-	NextPageToken string           `json:"nextPageToken,omitEmpty"`
-}
-
-func paginate(reviews []review.Summary, maxPerPage int) [][]review.Summary {
-	var results [][]review.Summary
-	var currID int
-	var currPage []review.Summary
-	for _, r := range reviews {
-		if currID >= maxPerPage {
-			results = append(results, currPage)
-			currPage = nil
-			currID = 0
-		}
-		currPage = append(currPage, r)
-		currID++
-	}
-	results = append(results, currPage)
-	return results
-}
-
-func (r *RepoCacheItem) Update() error {
-	stateHash, err := r.Repo.GetRepoStateHash()
-	if err != nil {
-		return err
-	}
-	if stateHash == r.RepoState {
-		return nil
-	}
-	allReviews := review.ListAll(r.Repo)
-	var openReviews []review.Summary
-	var closedReviews []review.Summary
-	for _, review := range allReviews {
-		if review.Submitted {
-			closedReviews = append(closedReviews, review)
-		} else {
-			openReviews = append(openReviews, review)
-		}
-	}
-	r.OpenReviewCount = len(openReviews)
-	r.OpenReviews = paginate(openReviews, 100)
-	r.ClosedReviewCount = len(closedReviews)
-	r.ClosedReviews = paginate(closedReviews, 100)
-	r.RepoState = stateHash
-	return nil
-}
-
-type RepoCache map[string]*RepoCacheItem
-
-// Get a fixed-length, obfuscated ID for the given repo.
-func getRepoId(repo repository.Repo) string {
-	return fmt.Sprintf("%.6x", sha1.Sum([]byte(repo.GetPath())))
-}
-
+// AddRepo adds the given repository to the cache.
 func (cache RepoCache) AddRepo(repo repository.Repo) {
-	cache[getRepoId(repo)] = &RepoCacheItem{
-		Repo: repo,
-	}
+	repoDetails := NewRepoDetails(repo)
+	cache[repoDetails.ID] = repoDetails
 }
 
-func (cache RepoCache) GetRepoCacheItem(r *http.Request) (*RepoCacheItem, error) {
+func (cache RepoCache) getRepoDetails(r *http.Request) (*RepoDetails, error) {
 	repoParam := r.URL.Query().Get("repo")
 	if repoParam == "" {
 		return nil, errors.New("No repository specified")
 	}
-	repoCacheItem, ok := cache[repoParam]
+	repoDetails, ok := cache[repoParam]
 	if !ok {
 		return nil, errors.New("Invalid repository specified")
 	}
-	if err := repoCacheItem.Update(); err != nil {
-		return nil, err
-	}
-	return repoCacheItem, nil
+	return repoDetails, nil
 }
 
-func (cache RepoCache) GetReview(r *http.Request) (*review.Review, error) {
-	repoCacheItem, err := cache.GetRepoCacheItem(r)
+func (cache RepoCache) getReview(r *http.Request) (*review.Review, error) {
+	repoDetails, err := cache.getRepoDetails(r)
 	if err != nil {
 		return nil, err
 	}
@@ -153,14 +57,14 @@ func (cache RepoCache) GetReview(r *http.Request) (*review.Review, error) {
 	if reviewParam == "" {
 		return nil, errors.New("No review specified")
 	}
-	reviewDetails, err := review.Get(repoCacheItem.Repo, reviewParam)
+	reviewDetails, err := repoDetails.GetReview(reviewParam)
 	if err != nil {
 		return nil, errors.New("Invalid review specified")
 	}
 	return reviewDetails, nil
 }
 
-func serveJson(v interface{}, w http.ResponseWriter) {
+func serveJSON(v interface{}, w http.ResponseWriter) {
 	json, err := json.MarshalIndent(v, "", "\t")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -169,30 +73,31 @@ func serveJson(v interface{}, w http.ResponseWriter) {
 	w.Write(json)
 }
 
-func (cache RepoCache) ServeListReposJson(w http.ResponseWriter, r *http.Request) {
+// ServeListReposJSON writes the list of repositories to the given writer.
+func (cache RepoCache) ServeListReposJSON(w http.ResponseWriter, r *http.Request) {
 	var reposList ReposList
-	for id, cacheItem := range cache {
-		reposList = append(reposList, RepoListItem{
-			ID:   id,
-			Path: cacheItem.Repo.GetPath(),
-		})
+	for _, repoDetails := range cache {
+		reposList = append(reposList, repoDetails.GetListItem())
 	}
 	sort.Stable(reposList)
-	serveJson(reposList, w)
+	serveJSON(reposList, w)
 }
 
-func (cache RepoCache) ServeRepoSummaryJson(w http.ResponseWriter, r *http.Request) {
-	repoCacheItem, err := cache.GetRepoCacheItem(r)
+// ServeRepoSummaryJSON writes the summary of a given repository to the given writer.
+//
+// The repository to summarize is given by the 'repo' URL parameter.
+func (cache RepoCache) ServeRepoSummaryJSON(w http.ResponseWriter, r *http.Request) {
+	repoDetails, err := cache.getRepoDetails(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	summary := RepoSummary{
-		Path:              repoCacheItem.Repo.GetPath(),
-		OpenReviewCount:   repoCacheItem.OpenReviewCount,
-		ClosedReviewCount: repoCacheItem.ClosedReviewCount,
+	summary, err := repoDetails.GetSummary()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
-	serveJson(summary, w)
+	serveJSON(summary, w)
 }
 
 func getPageToken(r *http.Request) (page int, err error) {
@@ -206,23 +111,12 @@ func getPageToken(r *http.Request) (page int, err error) {
 	return page, nil
 }
 
-func getReviewListResponse(pageToken int, reviews [][]review.Summary) *ReviewListResponse {
-	var items []review.Summary
-	var nextPageToken string
-	if pageToken < len(reviews) {
-		items = reviews[pageToken]
-		if pageToken < len(reviews)-1 {
-			nextPageToken = strconv.Itoa(pageToken + 1)
-		}
-	}
-	return &ReviewListResponse{
-		Items:         items,
-		NextPageToken: nextPageToken,
-	}
-}
-
-func (cache RepoCache) ServeClosedReviewsJson(w http.ResponseWriter, r *http.Request) {
-	repoCacheItem, err := cache.GetRepoCacheItem(r)
+// ServeClosedReviewsJSON writes a page of the closed reviews list for the given repository to the given writer.
+//
+// The repository to list reviews for is given by the 'repo' URL parameter.
+// The page of the review list to output is given by the 'page' URL parameter.
+func (cache RepoCache) ServeClosedReviewsJSON(w http.ResponseWriter, r *http.Request) {
+	repoDetails, err := cache.getRepoDetails(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -232,12 +126,20 @@ func (cache RepoCache) ServeClosedReviewsJson(w http.ResponseWriter, r *http.Req
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	response := getReviewListResponse(pageToken, repoCacheItem.ClosedReviews)
-	serveJson(response, w)
+	closedReviews, err := repoDetails.GetClosedReviews(pageToken)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	serveJSON(closedReviews, w)
 }
 
-func (cache RepoCache) ServeOpenReviewsJson(w http.ResponseWriter, r *http.Request) {
-	repoCacheItem, err := cache.GetRepoCacheItem(r)
+// ServeOpenReviewsJSON writes a page of the open reviews list for the given repository to the given writer.
+//
+// The repository to list reviews for is given by the 'repo' URL parameter.
+// The page of the review list to output is given by the 'page' URL parameter.
+func (cache RepoCache) ServeOpenReviewsJSON(w http.ResponseWriter, r *http.Request) {
+	repoDetails, err := cache.getRepoDetails(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -247,81 +149,48 @@ func (cache RepoCache) ServeOpenReviewsJson(w http.ResponseWriter, r *http.Reque
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	response := getReviewListResponse(pageToken, repoCacheItem.OpenReviews)
-	serveJson(response, w)
+	openReviews, err := repoDetails.GetOpenReviews(pageToken)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	serveJSON(openReviews, w)
 }
 
-func (cache RepoCache) ServeReviewDetailsJson(w http.ResponseWriter, r *http.Request) {
-	reviewDetails, err := cache.GetReview(r)
+// ServeReviewDetailsJSON writes the details of a review to the given writer.
+//
+// The enclosing repository is given by the 'repo' URL parameter.
+// The review to write is given by the 'review' URL parameter.
+func (cache RepoCache) ServeReviewDetailsJSON(w http.ResponseWriter, r *http.Request) {
+	reviewDetails, err := cache.getReview(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	serveJson(reviewDetails, w)
+	serveJSON(reviewDetails, w)
 }
 
-func getDiffSummary(reviewDetails *review.Review, lhs, rhs string) (*DiffSummary, error) {
-	base, err := reviewDetails.GetBaseCommit()
-	if err != nil {
-		return nil, err
-	}
-	head, err := reviewDetails.GetHeadCommit()
-	if err != nil {
-		return nil, err
-	}
-	reviewCommits := []string{base}
-	subsequentCommits, err := reviewDetails.Repo.ListCommitsBetween(base, head)
-	if err != nil {
-		return nil, err
-	}
-	reviewCommits = append(reviewCommits, subsequentCommits...)
-	commitsMap := make(map[string]interface{})
-	var commitOverviews []CommitOverview
-	for _, commit := range reviewCommits {
-		commitsMap[commit] = nil
-		details, err := reviewDetails.Repo.GetCommitDetails(commit)
-		if err != nil {
-			return nil, err
-		}
-		commitOverviews = append(commitOverviews, CommitOverview{
-			ID:      commit,
-			Details: details,
-		})
-	}
-	if _, ok := commitsMap[lhs]; !ok {
-		lhs = base
-	}
-	if _, ok := commitsMap[rhs]; !ok {
-		rhs = head
-	}
-	diff, err := reviewDetails.Repo.Diff(lhs, rhs)
-	if err != nil {
-		return nil, err
-	}
-	return &DiffSummary{
-		ReviewCommits: commitOverviews,
-		LeftHandSide:  lhs,
-		RightHandSide: rhs,
-		Contents:      diff,
-	}, nil
-}
-
+// ServeReviewDiff writes the diff summary of a review to the given writer.
+//
+// The enclosing repository is given by the 'repo' URL parameter.
+// The review to write is given by the 'review' URL parameter.
 func (cache RepoCache) ServeReviewDiff(w http.ResponseWriter, r *http.Request) {
-	reviewDetails, err := cache.GetReview(r)
+	reviewDetails, err := cache.getReview(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 	lhs := r.URL.Query().Get("lhs")
 	rhs := r.URL.Query().Get("rhs")
-	diffSummary, err := getDiffSummary(reviewDetails, lhs, rhs)
+	diffSummary, err := NewDiffSummary(reviewDetails, lhs, rhs)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	serveJson(diffSummary, w)
+	serveJSON(diffSummary, w)
 }
 
+// ServeEntryPointRedirect writes the main redirect response to the given writer.
 func (cache RepoCache) ServeEntryPointRedirect(w http.ResponseWriter, r *http.Request) {
 	if len(cache) == 1 {
 		for id := range cache {
