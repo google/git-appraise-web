@@ -1,3 +1,19 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 Google Inc. All rights reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
 <html>
   <head>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.26/angular.min.js"></script>
@@ -9,6 +25,8 @@
     <link rel="import" href="https://cdn.rawgit.com/download/polymer-cdn/1.2.3.2/lib/paper-item/paper-item.html">
     <link rel="import" href="https://cdn.rawgit.com/download/polymer-cdn/1.2.3.2/lib/paper-listbox/paper-listbox.html">
     <link rel="import" href="https://cdn.rawgit.com/download/polymer-cdn/1.2.3.2/lib/paper-toolbar/paper-toolbar.html">
+
+    <link rel="import" href="/static/timestamp.html">
   </head>
   <body>
     <dom-module id="comment-thread">
@@ -72,20 +90,32 @@
         </style>
         <paper-item>
           <paper-card>
-            <paper-toolbar class$="{{thread.status}}">
-	      <div>{{thread.comment.timestamp}}</div>
-	      <div class="flexchild author">{{thread.comment.author}}</div>
-	      <div>{{thread.status}}</div>
+            <paper-toolbar class$="{{status}}">
+              <friendly-timestamp timestamp="{{thread.comment.timestamp}}"></friendly-timestamp>
+              <div class="flexchild author">{{thread.comment.author}}</div>
+              <div>{{status}}</div>
             </paper-toolbar>
             <div hidden$="{{hidden}}">
-	      <div class="desc" id="desc"></div>
-	      <comment-threads items="{{thread.children}}"></comment-threads>
+              <div class="desc" id="desc"></div>
+              <comment-threads items="{{thread.children}}"></comment-threads>
             </div>
           </paper-card>
         </paper-item>
       </template>
       <script>
         var converter = new showdown.Converter();
+
+        function getCommentThreadStatus(commentThread) {
+          if ('resolved' in commentThread) {
+            if (commentThread.resolved) {
+              return 'lgtm';
+            } else {
+              return 'nmw';
+            }
+          } else {
+            return 'fyi';
+          }
+        }
 
         Polymer({
           is: 'comment-thread',
@@ -97,6 +127,10 @@
             hidden: {
               type: Boolean,
               value: false
+            },
+            status: {
+              type: String,
+              value: 'fyi'
             }
           },
           listeners: {
@@ -106,9 +140,11 @@
             if (this.thread &&
                 ((typeof this.thread) == 'object') &&
                 this.thread.comment &&
-                ((typeof this.thread.comment) == 'object') &&
-                'description' in this.thread.comment) {
-              Polymer.dom(this.$.desc).innerHTML = converter.makeHtml(this.thread.comment.description);
+                ((typeof this.thread.comment) == 'object')) {
+              this.status = getCommentThreadStatus(this.thread);
+              if ('description' in this.thread.comment) {
+                Polymer.dom(this.$.desc).innerHTML = converter.makeHtml(this.thread.comment.description);
+              }
             }
           },
           toggleHidden: function() {
