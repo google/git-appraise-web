@@ -94,7 +94,7 @@ limitations under the License.
         </style>
         <paper-item>
           <paper-card>
-            <paper-toolbar>
+            <paper-toolbar on-tap="toggleHidden">
               <div class="flexchild">{{details.description}}</div>
             </paper-toolbar>
             <div hidden$="{{hidden}}" class="diff-contents">
@@ -127,9 +127,6 @@ limitations under the License.
               type: Boolean,
               value: false
             }
-          },
-          listeners: {
-            'tap': 'toggleHidden'
           },
           toggleHidden: function() {
             this.hidden = !this.hidden;

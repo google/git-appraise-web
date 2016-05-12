@@ -71,7 +71,7 @@ limitations under the License.
         </style>
         <paper-item>
           <paper-card>
-            <paper-toolbar class$="{{status}}">
+            <paper-toolbar class$="{{status}}" on-tap="toggleHidden">
               <friendly-timestamp timestamp="{{thread.comment.timestamp}}"></friendly-timestamp>
               <div class="flexchild author">{{thread.comment.author}}</div>
               <div>{{status}}</div>
@@ -111,9 +111,6 @@ limitations under the License.
               type: String,
               value: 'fyi'
             }
-          },
-          listeners: {
-            'tap': 'toggleHidden'
           },
           _displayThreads: function() {
             if (this.thread &&
