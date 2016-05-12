@@ -16,16 +16,13 @@ limitations under the License.
 -->
 <html>
   <head>
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.26/angular.min.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.26/angular-sanitize.js"></script>
-    <script src="https://cdn.rawgit.com/showdownjs/showdown/1.3.0/dist/showdown.min.js"></script>
-
     <link rel="import" href="https://cdn.rawgit.com/download/polymer-cdn/1.2.3.2/lib/polymer/polymer.html">
     <link rel="import" href="https://cdn.rawgit.com/download/polymer-cdn/1.2.3.2/lib/paper-card/paper-card.html">
     <link rel="import" href="https://cdn.rawgit.com/download/polymer-cdn/1.2.3.2/lib/paper-item/paper-item.html">
     <link rel="import" href="https://cdn.rawgit.com/download/polymer-cdn/1.2.3.2/lib/paper-listbox/paper-listbox.html">
     <link rel="import" href="https://cdn.rawgit.com/download/polymer-cdn/1.2.3.2/lib/paper-toolbar/paper-toolbar.html">
 
+    <link rel="import" href="/static/markdown.html">
     <link rel="import" href="/static/timestamp.html">
   </head>
   <body>
@@ -71,22 +68,6 @@ limitations under the License.
           paper-toolbar ::shadow #topBar {
             width: inherit;
           }
-
-          .desc {
-            padding: 10px 16px 0px;
-          }
-
-          blockquote {
-            font-size: inherit;
-          }
-
-          pre {
-            font-size: inherit;
-          }
-
-          code {
-            font-size: inherit;
-          }
         </style>
         <paper-item>
           <paper-card>
@@ -96,15 +77,13 @@ limitations under the License.
               <div>{{status}}</div>
             </paper-toolbar>
             <div hidden$="{{hidden}}">
-              <div class="desc" id="desc"></div>
+              <markdown-field text="{{thread.comment.description}}"></markdown-field>
               <comment-threads items="{{thread.children}}"></comment-threads>
             </div>
           </paper-card>
         </paper-item>
       </template>
       <script>
-        var converter = new showdown.Converter();
-
         function getCommentThreadStatus(commentThread) {
           if ('resolved' in commentThread) {
             if (commentThread.resolved) {
@@ -142,8 +121,8 @@ limitations under the License.
                 this.thread.comment &&
                 ((typeof this.thread.comment) == 'object')) {
               this.status = getCommentThreadStatus(this.thread);
-              if ('description' in this.thread.comment) {
-                Polymer.dom(this.$.desc).innerHTML = converter.makeHtml(this.thread.comment.description);
+              if (!('description' in this.thread.comment)) {
+                this.thread.comment.description = '';
               }
             }
           },
