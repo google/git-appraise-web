@@ -21,7 +21,13 @@ limitations under the License.
   <body>
     <dom-module id="friendly-timestamp">
       <template>
-        <div>{{converted}}</div>
+        <style>
+          .timestamp {
+            white-space: pre;
+            padding: 0px 10px;
+          }
+        </style>
+        <div class="timestamp">{{converted}}</div>
       </template>
       <script>
         // Given a timestamp as the seconds from the unix epoch, return the human-friendly version.
