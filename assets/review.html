@@ -17,141 +17,139 @@ limitations under the License.
 <html>
 <head>
   <title>Review Details</title>
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" />
-  <link rel="stylesheet" href="/static/reviews.css" />
   <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/webcomponentsjs/0.7.22/webcomponents-lite.min.js"></script>
   <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.26/angular.min.js"></script>
-  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.26/angular-sanitize.js"></script>
-  <script src="https://cdn.rawgit.com/showdownjs/showdown/1.3.0/dist/showdown.min.js"></script>
+
+  <link rel="import" href="https://cdn.rawgit.com/download/polymer-cdn/1.2.3.2/lib/polymer/polymer.html">
+  <link rel="import" href="https://cdn.rawgit.com/download/polymer-cdn/1.2.3.2/lib/paper-card/paper-card.html">
+  <link rel="import" href="https://cdn.rawgit.com/download/polymer-cdn/1.2.3.2/lib/paper-toolbar/paper-toolbar.html">
+
+  <link rel="import" href="/static/comments.html">
+  <link rel="import" href="/static/commits.html">
+  <link rel="import" href="/static/diff.html">
+  <link rel="import" href="/static/ci.html">
+  <link rel="import" href="/static/markdown.html">
 </head>
 <body ng-app="gitAppraiseWeb">
+  <dom-module id="review-details">
+    <template>
+      <style>
+        paper-card {
+          width: 100%;
+        }
+
+        paper-toolbar {
+          @apply(--layout-horizontal);
+          width: inherit;
+        }
+
+        paper-item {
+          @apply(--layout-horizontal);
+          width: inherit;
+        }
+
+        table {
+          width: 100%;
+          padding: inherit;
+          border-spacing: 0;
+        }
+
+        tr {
+          width: inherit;
+          padding: inherit;
+        }
+
+        .details {
+          vertical-align: top;
+          padding: 10px 0px;
+        }
+
+        .description {
+          width: 100%;
+        }
+
+        .field {
+          font-weight: bold;
+          font-size: 18px;
+          white-space: pre;
+          padding: 0px 10px;
+        }
+
+        .value {
+          font-size: 18px;
+          white-space: pre;
+          padding: 0px 10px;
+        }
+      </style>
+      <paper-card>
+        <paper-toolbar>
+          <span class="title">Git-Appraise Web UI > {{repo}} > {{details.revision}} </span>
+        </paper-toolbar>
+	<table>
+          <tr>
+            <td class="details">
+              <table>
+		<tr>
+                  <td class="field">Revision:</td>
+                  <td class="value">{{details.revision}}</td>
+		</tr>
+		<tr>
+                  <td class="field">Requester:</td>
+                  <td class="value">{{details.request.requester}}</td>
+		</tr>
+		<tr>
+                  <td class="field">Review Ref:</td>
+                  <td class="value">{{details.request.reviewRef}}</td>
+		</tr>
+		<tr>
+                  <td class="field">Target Ref:</td>
+                  <td class="value">{{details.request.targetRef}}</td>
+		</tr>
+              </table>
+            </td>
+            <td class="description">
+              <markdown-field text="{{details.request.description}}"></markdown-field>
+            </td>
+          </tr>
+	</table>
+      </paper-card>
+      <paper-card>
+	<commits-list commits="{{diff.reviewCommits}}"></commits-list>
+	<paper-card>
+          <paper-toolbar>
+            <span class="title">Diff: {{diff.leftHandSide}} -&gt; {{diff.rightHandSide}}</span>
+          </paper-toolbar>
+          <inline-diff summary="{{diff}}"></inline-diff>
+	</paper-card>
+      </paper-card>
+      <continuous-integration reports="{{details.reports}}"></continuous-integration>
+      <paper-card>
+	<paper-toolbar><span class="title">Discussion:</span></paper-toolbar>
+	<comment-threads items="{{details.comments}}"></comment-threads>
+      </paper-card>
+    </template>
+    <script>
+      Polymer({
+        is: 'review-details',
+        properties: {
+          repo: {
+            type: String
+          },
+          details: {
+            type: Object
+          },
+          diff: {
+            type: Object
+          }
+        }
+      });
+    </script>
+  </dom-module>
+
   <div ng-controller="getReview">
-    <div class="container">
-      <div class="row">
-        <div class="col-md-12">
-          <h1 class="text-center csblue">Repository: {{path}}</h1>
-        </div>
-      </div>
-      <div class="row header-bar">
-        <div class="col-md-12">
-          <b>Details:</b>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col-md-2">
-          <b>Revision:</b>
-        </div>
-        <div class="col-md-10">
-          {{details.revision}}
-        </div>
-      </div>
-      <div class="row">
-        <div class="col-md-2">
-          <b>Requester:</b>
-        </div>
-        <div class="col-md-10">
-          {{details.request.requester}}
-        </div>
-      </div>
-      <div class="row">
-        <div class="col-md-2">
-          <b>Review Ref:</b>
-        </div>
-        <div class="col-md-10">
-          {{details.request.reviewRef}}
-        </div>
-      </div>
-      <div class="row">
-        <div class="col-md-2">
-          <b>Target Ref:</b>
-        </div>
-        <div class="col-md-10">
-          {{details.request.targetRef}}
-        </div>
-      </div>
-      <div class="row">
-        <div class="col-md-2">
-          <b>Description:</b>
-        </div>
-        <div class="col-md-10">
-          <div class="desc">{{details.request.description}}</div>
-        </div>
-      </div>
-      <div class="row header-bar">
-        <div class="col-md-12">
-          <b>Changes:</b>
-        </div>
-      </div>
-      <div class="row" ng-repeat="commit in diff.reviewCommits">
-        <div class="col-md-1">{{commit.name}}</div>
-        <div class="col-md-2">{{commit.details.time}}</div>
-        <div class="col-md-2">{{commit.details.authorEmail}}</div>
-        <div class="col-md-7">{{commit.details.summary}}</div>
-      </div>
-      <div class="row header-bar">
-        <div class="col-md-12">
-          <b>Diff: {{diff.leftHandSide}} {{diff.rightHandSide}}</b>
-        </div>
-      </div>
-      <div class="container file-diff" ng-repeat="file in diff.files">
-        <div class="row diff-header">
-          <div class="col-md-12">
-            <input type="checkbox" ng-model="file.display">{{file.description}}</input>
-          </div>
-        </div>
-        <div class="container file-diff" ng-show="file.display">
-          <div class="row" ng-repeat="line in file.diffLines">
-            <div class="col-md-12 omitted" ng-if="line.status == 'omitted'">{{line.text}}</div>
-            <div class="col-md-1 linenumber" ng-if="line.status == 'unchanged' || line.status == 'removed'">
-              {{line.lhsNumber}}
-            </div>
-            <div class="col-md-1 linenumber" ng-if="line.status == 'added'"></div>
-            <div class="col-md-1 linenumber" ng-if="line.status == 'unchanged' || line.status == 'added'">
-              {{line.rhsNumber}}
-            </div>
-            <div class="col-md-1 linenumber" ng-if="line.status == 'removed'"></div>
-            <div class="col-md-10 unchanged" ng-if="line.status == 'unchanged'">{{line.text}} </div>
-            <div class="col-md-10 added" ng-if="line.status == 'added'">{{line.text}} </div>
-            <div class="col-md-10 removed" ng-if="line.status == 'removed'">{{line.text}} </div>
-          </div>
-        </div>
-      </div>
-      <div class="row header-bar">
-        <div class="col-md-12">
-          <b>Continuous Integration:</b>
-        </div>
-      </div>
-      <div class="row alternate_row" ng-repeat="report in details.reports" ng-if="report.status">
-        <div class="col-md-4">{{report.timestamp}}</div>
-        <div class="col-md-4">{{report.agent}}</div>
-        <div class="col-md-4" ng-if="report.url">
-          <a href="{{report.url}}">{{report.status}}</a>
-        </div>
-        <div class="col-md-4" ng-if="!report.url">{{report.status}}</div>
-      </div>
-      <div class="row header-bar">
-        <div class="col-md-12">
-          <b>Discussion:</b>
-        </div>
-      </div>
-      <div class="row" ng-repeat="thread in details.comments">
-        <div class="container">
-          <div class="row comment-header">
-            <div class="col-md-4">
-              <input type="checkbox" ng-model="thread.display">
-                {{thread.comment.timestamp}}
-              </input>
-            </div>
-            <div class="col-md-4">{{thread.comment.author}}</div>
-            <div class="col-md-4 lgtm" ng-if="thread.status=='lgtm'">Looks Good To Me</div>
-            <div class="col-md-4 nmw" ng-if="thread.status=='nmw'">Needs More Work</div>
-          </div>
-          <div class="row" ng-show="thread.display">
-            <div class="col-md-12" ng-bind-html="thread.html"></div>
-          </div>
-        </div>
-      </div>
-    </div>
+    <review-details repo="{{path}}" details="{{details}}" diff="{{diff}}"></review-details>
   </div>
 
   <script src="/static/reviews.js"></script>

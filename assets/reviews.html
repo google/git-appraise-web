@@ -17,43 +17,74 @@ limitations under the License.
 <html>
 <head>
   <title>Review List</title>
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" />
-  <link rel="stylesheet" href="/static/reviews.css" />
   <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/webcomponentsjs/0.7.22/webcomponents-lite.min.js"></script>
   <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.26/angular.min.js"></script>
-  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.26/angular-sanitize.js"></script>
+
+  <link rel="import" href="https://cdn.rawgit.com/download/polymer-cdn/1.2.3.2/lib/polymer/polymer.html">
+  <link rel="import" href="https://cdn.rawgit.com/download/polymer-cdn/1.2.3.2/lib/paper-card/paper-card.html">
+  <link rel="import" href="https://cdn.rawgit.com/download/polymer-cdn/1.2.3.2/lib/paper-toolbar/paper-toolbar.html">
+
+  <link rel="import" href="/static/timestamp.html">
 </head>
 <body ng-app="gitAppraiseWeb">
+  <dom-module id="review-list">
+    <template>
+      <style>
+        paper-card {
+          width: 100%;
+        }
+
+        .summary {
+          width: 100%;
+        }
+      </style>
+      <paper-card>
+        <paper-toolbar on-tap="toggleHidden">
+          <span class="title">{{title}}</span>
+        </paper-toolbar>
+        <table hidden$="{{hidden}}">
+          <template is="dom-repeat" items="{{reviews}}">
+            <tr>
+              <td><friendly-timestamp timestamp="{{item.timestamp}}"></friendly-timestamp></td>
+              <td class="summary">
+                <a href="/static/review.html#?repo={{repo}}&review={{item.revision}}">{{item.summary}}</a>
+              </td>
+            </tr>
+          </template>
+        </table>
+      </paper-card>
+    </template>
+    <script>
+      Polymer({
+        is: 'review-list',
+        properties: {
+          repo: {
+            type: String,
+          },
+          title: {
+            type: String,
+          },
+          reviews: {
+            type: Array,
+          },
+          hidden: {
+            type: Boolean,
+            value: false
+          }
+        },
+        toggleHidden: function() {
+          this.hidden = !this.hidden;
+        }
+      });
+    </script>
+  </dom-module>
+
   <div ng-controller="listReviews">
-    <div class="container">
-      <div class="row">
-        <div class="col-md-12">
-          <h1 class="text-center csblue">Repository: {{path}}</h1>
-        </div>
-      </div>
-      <div class="row header-bar">
-        <div class="col-md-12">
-          <b>Open Reviews:</b>
-        </div>
-      </div>
-      <div class="row alternate_row" ng-repeat="review in openReviews">
-        <div class="col-md-4">{{review.timestamp}}</div>
-        <div class="col-md-8">
-          <a href="/static/review.html#?repo={{repo}}&review={{review.revision}}">{{review.summary}}</a>
-        </div>
-      </div>
-      <div class="row header-bar">
-        <div class="col-md-12">
-          <b>Closed Reviews:</b>
-        </div>
-      </div>
-      <div class="row alternate_row" ng-repeat="review in closedReviews">
-        <div class="col-md-4">{{review.timestamp}}</div>
-        <div class="col-md-8">
-          <a href="/static/review.html#?repo={{repo}}&review={{review.revision}}">{{review.summary}}</a>
-        </div>
-      </div>
-    </div>
+    <paper-toolbar><span class="title">Git-Appraise Web UI > {{path}}</span></paper-toolbar>
+    <review-list repo="{{repo}}" title="Open Reviews" reviews="{{openReviews}}"></review-list>
+    <review-list repo="{{repo}}" title="Closed Reviews" reviews="{{closedReviews}}"></review-list>
   </div>
 
   <script src="/static/reviews.js"></script>
