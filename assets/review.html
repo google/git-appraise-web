@@ -61,6 +61,18 @@ limitations under the License.
           padding: inherit;
         }
 
+        .pending {
+          background-color:#e4e4e4;
+        }
+
+        .accepted {
+          background-color:#e4ffe4;
+        }
+
+        .rejected {
+          background-color:#ffe4e4;
+        }
+
         .details {
           vertical-align: top;
           padding: 10px 0px;
@@ -68,6 +80,7 @@ limitations under the License.
 
         .description {
           width: 100%;
+          background-color:#ffffff;
         }
 
         .field {
@@ -87,7 +100,7 @@ limitations under the License.
         <paper-toolbar>
           <span class="title">Git-Appraise Web UI > {{repo}} > {{details.revision}} </span>
         </paper-toolbar>
-	<table>
+	<table class$="{{status}}">
           <tr>
             <td class="details">
               <table>
@@ -138,10 +151,28 @@ limitations under the License.
             type: String
           },
           details: {
-            type: Object
+            type: Object,
+            observer: '_updateDetailsStatus'
           },
           diff: {
             type: Object
+          },
+          status: {
+            type: String,
+            value: 'pending'
+          }
+        },
+        _updateDetailsStatus: function() {
+          if (this.details && ((typeof this.details) == 'object')) {
+            if ('resolved' in this.details) {
+              if (this.details.resolved) {
+                this.status = 'accepted';
+              } else {
+                this.status = 'rejected';
+              }
+            } else {
+              this.status = 'pending';
+            }
           }
         }
       });
