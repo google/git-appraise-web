@@ -27,30 +27,17 @@ limitations under the License.
   <link rel="import" href="https://cdn.rawgit.com/download/polymer-cdn/1.2.3.2/lib/paper-item/paper-item.html">
   <link rel="import" href="https://cdn.rawgit.com/download/polymer-cdn/1.2.3.2/lib/paper-listbox/paper-listbox.html">
   <link rel="import" href="https://cdn.rawgit.com/download/polymer-cdn/1.2.3.2/lib/paper-toolbar/paper-toolbar.html">
-  <style>
-    body {
-      margin: 0px;
-    }
-  </style>
+
+  <link rel="stylesheet" href="/static/reviews.css">
 </head>
 <body ng-app="gitAppraiseWeb">
   <dom-module id="repo-list">
     <template>
       <style>
-        paper-item {
-          width: inherit;
-          padding-bottom: 10px;
-        }
-
-        paper-card {
-          width: 100%;
-          min-height: inherit;
-        }
-
         .repo {
           width: 100%;
-          min-height: inherit;
-          padding: 10px 16px 0px;
+          padding: 20px;
+          font-size: medium;
         }
       </style>
       <paper-toolbar>

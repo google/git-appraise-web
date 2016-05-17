@@ -33,25 +33,12 @@ limitations under the License.
   <link rel="import" href="/static/diff.html">
   <link rel="import" href="/static/ci.html">
   <link rel="import" href="/static/markdown.html">
-  <style>
-    body {
-      margin: 0px;
-    }
-  </style>
+  <link rel="stylesheet" href="/static/reviews.css">
 </head>
 <body ng-app="gitAppraiseWeb">
   <dom-module id="review-details">
     <template>
       <style>
-        paper-item {
-          width: inherit;
-          padding-bottom: 10px;
-        }
-
-        paper-card {
-          width: 100%;
-        }
-
         table {
           width: 100%;
           padding: inherit;
@@ -87,13 +74,11 @@ limitations under the License.
 
         .field {
           font-weight: bold;
-          font-size: 18px;
           white-space: pre;
           padding: 0px 10px;
         }
 
         .value {
-          font-size: 18px;
           white-space: pre;
           padding: 0px 10px;
         }
