@@ -24,34 +24,47 @@ limitations under the License.
 
   <link rel="import" href="https://cdn.rawgit.com/download/polymer-cdn/1.2.3.2/lib/polymer/polymer.html">
   <link rel="import" href="https://cdn.rawgit.com/download/polymer-cdn/1.2.3.2/lib/paper-card/paper-card.html">
+  <link rel="import" href="https://cdn.rawgit.com/download/polymer-cdn/1.2.3.2/lib/paper-item/paper-item.html">
+  <link rel="import" href="https://cdn.rawgit.com/download/polymer-cdn/1.2.3.2/lib/paper-listbox/paper-listbox.html">
   <link rel="import" href="https://cdn.rawgit.com/download/polymer-cdn/1.2.3.2/lib/paper-toolbar/paper-toolbar.html">
+  <style>
+    body {
+      margin: 0px;
+    }
+  </style>
 </head>
 <body ng-app="gitAppraiseWeb">
   <dom-module id="repo-list">
     <template>
       <style>
+        paper-item {
+          width: inherit;
+          padding-bottom: 10px;
+        }
+
         paper-card {
           width: 100%;
+          min-height: inherit;
         }
 
         .repo {
           width: 100%;
+          min-height: inherit;
+          padding: 10px 16px 0px;
         }
       </style>
-      <paper-card>
-        <paper-toolbar>
-          <span class="title">Git-Appraise Web UI > Repositories</span>
-        </paper-toolbar>
-        <table>
-          <template is="dom-repeat" items="{{repos}}">
-            <tr>
-              <td class="repo">
-                <a href="/static/reviews.html#?repo={{item.id}}">{{item.name}}</a>
-              </td>
-            </tr>
-          </template>
-        </table>
-      </paper-card>
+      <paper-toolbar>
+        <span class="title">Git-Appraise Web UI > Repositories</span>
+      </paper-toolbar>
+      <paper-listbox>
+        <template is="dom-repeat" items="{{repos}}">
+          <paper-item>
+            <paper-card>
+              <div class="repo"><a href="/static/reviews.html#?repo={{item.id}}">{{item.name}}</a></div>
+            </paper-card>
+          </paper-item>
+        </template>
+      </paper-listbox>
     </template>
     <script>
       Polymer({

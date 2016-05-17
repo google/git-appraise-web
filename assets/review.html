@@ -24,6 +24,8 @@ limitations under the License.
 
   <link rel="import" href="https://cdn.rawgit.com/download/polymer-cdn/1.2.3.2/lib/polymer/polymer.html">
   <link rel="import" href="https://cdn.rawgit.com/download/polymer-cdn/1.2.3.2/lib/paper-card/paper-card.html">
+  <link rel="import" href="https://cdn.rawgit.com/download/polymer-cdn/1.2.3.2/lib/paper-item/paper-item.html">
+  <link rel="import" href="https://cdn.rawgit.com/download/polymer-cdn/1.2.3.2/lib/paper-listbox/paper-listbox.html">
   <link rel="import" href="https://cdn.rawgit.com/download/polymer-cdn/1.2.3.2/lib/paper-toolbar/paper-toolbar.html">
 
   <link rel="import" href="/static/comments.html">
@@ -31,23 +33,23 @@ limitations under the License.
   <link rel="import" href="/static/diff.html">
   <link rel="import" href="/static/ci.html">
   <link rel="import" href="/static/markdown.html">
+  <style>
+    body {
+      margin: 0px;
+    }
+  </style>
 </head>
 <body ng-app="gitAppraiseWeb">
   <dom-module id="review-details">
     <template>
       <style>
+        paper-item {
+          width: inherit;
+          padding-bottom: 10px;
+        }
+
         paper-card {
           width: 100%;
-        }
-
-        paper-toolbar {
-          @apply(--layout-horizontal);
-          width: inherit;
-        }
-
-        paper-item {
-          @apply(--layout-horizontal);
-          width: inherit;
         }
 
         table {
@@ -95,53 +97,72 @@ limitations under the License.
           white-space: pre;
           padding: 0px 10px;
         }
+
+        continuous-integration {
+          width: 100%;
+        }
       </style>
-      <paper-card>
-        <paper-toolbar>
-          <span class="title">Git-Appraise Web UI > {{repo}} > {{details.revision}} </span>
-        </paper-toolbar>
-	<table class$="{{status}}">
-          <tr>
-            <td class="details">
-              <table>
-		<tr>
-                  <td class="field">Revision:</td>
-                  <td class="value">{{details.revision}}</td>
-		</tr>
-		<tr>
-                  <td class="field">Requester:</td>
-                  <td class="value">{{details.request.requester}}</td>
-		</tr>
-		<tr>
-                  <td class="field">Review Ref:</td>
-                  <td class="value">{{details.request.reviewRef}}</td>
-		</tr>
-		<tr>
-                  <td class="field">Target Ref:</td>
-                  <td class="value">{{details.request.targetRef}}</td>
-		</tr>
-              </table>
-            </td>
-            <td class="description">
-              <markdown-field text="{{details.request.description}}"></markdown-field>
-            </td>
-          </tr>
-	</table>
-      </paper-card>
-      <paper-card>
-	<commits-list commits="{{diff.reviewCommits}}"></commits-list>
-	<paper-card>
-          <paper-toolbar>
-            <span class="title">Diff: {{diff.leftHandSide}} -&gt; {{diff.rightHandSide}}</span>
-          </paper-toolbar>
-          <inline-diff summary="{{diff}}"></inline-diff>
-	</paper-card>
-      </paper-card>
-      <continuous-integration reports="{{details.reports}}"></continuous-integration>
-      <paper-card>
-	<paper-toolbar><span class="title">Discussion:</span></paper-toolbar>
-	<comment-threads items="{{details.comments}}"></comment-threads>
-      </paper-card>
+      <paper-toolbar>
+        <span class="title">Git-Appraise Web UI > {{repo}} > {{details.revision}} </span>
+      </paper-toolbar>
+      <paper-listbox>
+        <paper-item>
+          <paper-card>
+            <paper-toolbar>
+              <span class="title">Summary:</span>
+            </paper-toolbar>
+            <table class$="{{status}}">
+              <tr>
+                <td class="details">
+                  <table>
+                    <tr>
+                      <td class="field">Revision:</td>
+                      <td class="value">{{details.revision}}</td>
+                    </tr>
+                    <tr>
+                      <td class="field">Requester:</td>
+                      <td class="value">{{details.request.requester}}</td>
+                    </tr>
+                    <tr>
+                      <td class="field">Review Ref:</td>
+                      <td class="value">{{details.request.reviewRef}}</td>
+                    </tr>
+                    <tr>
+                      <td class="field">Target Ref:</td>
+                      <td class="value">{{details.request.targetRef}}</td>
+                    </tr>
+                  </table>
+                </td>
+                <td class="description">
+                  <markdown-field text="{{details.request.description}}"></markdown-field>
+                </td>
+              </tr>
+            </table>
+          </paper-card>
+        </paper-item>
+        <paper-item>
+          <paper-card>
+            <commits-list commits="{{diff.reviewCommits}}"></commits-list>
+          </paper-card>
+        </paper-item>
+        <paper-item>
+          <paper-card>
+            <paper-toolbar>
+              <span class="title">Diff: {{diff.leftHandSide}} -&gt; {{diff.rightHandSide}}</span>
+            </paper-toolbar>
+            <inline-diff summary="{{diff}}"></inline-diff>
+          </paper-card>
+        </paper-item>
+        <paper-item>
+          <continuous-integration reports="{{details.reports}}"></continuous-integration>
+        </paper-item>
+        <paper-item>
+          <paper-card>
+            <paper-toolbar><span class="title">Discussion:</span></paper-toolbar>
+            <comment-threads items="{{details.comments}}"></comment-threads>
+          </paper-card>
+        </paper-item>
+      </paper-listbox>
     </template>
     <script>
       Polymer({

@@ -24,14 +24,26 @@ limitations under the License.
 
   <link rel="import" href="https://cdn.rawgit.com/download/polymer-cdn/1.2.3.2/lib/polymer/polymer.html">
   <link rel="import" href="https://cdn.rawgit.com/download/polymer-cdn/1.2.3.2/lib/paper-card/paper-card.html">
+  <link rel="import" href="https://cdn.rawgit.com/download/polymer-cdn/1.2.3.2/lib/paper-item/paper-item.html">
+  <link rel="import" href="https://cdn.rawgit.com/download/polymer-cdn/1.2.3.2/lib/paper-listbox/paper-listbox.html">
   <link rel="import" href="https://cdn.rawgit.com/download/polymer-cdn/1.2.3.2/lib/paper-toolbar/paper-toolbar.html">
 
   <link rel="import" href="/static/timestamp.html">
+  <style>
+    body {
+      margin: 0px;
+    }
+  </style>
 </head>
 <body ng-app="gitAppraiseWeb">
   <dom-module id="review-list">
     <template>
       <style>
+        paper-item {
+          width: inherit;
+          padding-bottom: 10px;
+        }
+
         paper-card {
           width: 100%;
         }
@@ -40,21 +52,23 @@ limitations under the License.
           width: 100%;
         }
       </style>
-      <paper-card>
-        <paper-toolbar on-tap="toggleHidden">
-          <span class="title">{{title}}</span>
-        </paper-toolbar>
-        <table hidden$="{{hidden}}">
-          <template is="dom-repeat" items="{{reviews}}">
-            <tr>
-              <td><friendly-timestamp timestamp="{{item.timestamp}}"></friendly-timestamp></td>
-              <td class="summary">
-                <a href="/static/review.html#?repo={{repo}}&review={{item.revision}}">{{item.summary}}</a>
-              </td>
-            </tr>
-          </template>
-        </table>
-      </paper-card>
+      <paper-item>
+        <paper-card>
+          <paper-toolbar on-tap="toggleHidden">
+            <span class="title">{{title}}</span>
+          </paper-toolbar>
+          <table hidden$="{{hidden}}">
+            <template is="dom-repeat" items="{{reviews}}">
+              <tr>
+                <td><friendly-timestamp timestamp="{{item.timestamp}}"></friendly-timestamp></td>
+                <td class="summary">
+                  <a href="/static/review.html#?repo={{repo}}&review={{item.revision}}">{{item.summary}}</a>
+                </td>
+              </tr>
+            </template>
+          </table>
+        </paper-card>
+      </paper-item>
     </template>
     <script>
       Polymer({
@@ -83,8 +97,10 @@ limitations under the License.
 
   <div ng-controller="listReviews">
     <paper-toolbar><span class="title">Git-Appraise Web UI > {{path}}</span></paper-toolbar>
-    <review-list repo="{{repo}}" title="Open Reviews" reviews="{{openReviews}}"></review-list>
-    <review-list repo="{{repo}}" title="Closed Reviews" reviews="{{closedReviews}}"></review-list>
+    <paper-listbox>
+      <review-list repo="{{repo}}" title="Open Reviews" reviews="{{openReviews}}"></review-list>
+      <review-list repo="{{repo}}" title="Closed Reviews" reviews="{{closedReviews}}"></review-list>
+    <paper-listbox>
   </div>
 
   <script src="/static/reviews.js"></script>
