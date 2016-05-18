@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 Google Inc. All rights reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+<html>
+  <head>
+    <link rel="import" href="https://cdn.rawgit.com/download/polymer-cdn/1.2.3.2/lib/polymer/polymer.html">
+    <link rel="import" href="https://cdn.rawgit.com/download/polymer-cdn/1.2.3.2/lib/paper-card/paper-card.html">
+    <link rel="import" href="https://cdn.rawgit.com/download/polymer-cdn/1.2.3.2/lib/paper-item/paper-item.html">
+    <link rel="import" href="https://cdn.rawgit.com/download/polymer-cdn/1.2.3.2/lib/paper-listbox/paper-listbox.html">
+    <link rel="import" href="https://cdn.rawgit.com/download/polymer-cdn/1.2.3.2/lib/paper-toolbar/paper-toolbar.html">
+  </head>
+  <body>
+    <dom-module id="file-diff">
+      <template>
+        <style>
+          paper-toolbar {
+            @apply(--layout-horizontal);
+            color: black;
+            background-color:#e4e4e4;
+          }
+
+          .diff-contents {
+            border: lightgrey;
+            border-style: solid;
+            border-width: thin;
+          }
+
+          .diff-line {
+            @apply(--layout-horizontal);
+            width: inherit;
+            line-height: normal;
+          }
+
+          .line-number {
+            width: 40px;
+            background-color:#f4f4f4;
+            font-family: monospace;
+            border-right: lightgrey;
+            border-right-style: solid;
+            border-right-width: thin;
+          }
+
+          .sourcecode {
+            font-family: monospace;
+            white-space: pre-wrap;
+            word-break: break-all;
+            width: inherit;
+          }
+
+          .omitted {
+            background-color:#f4f4f4;
+            font-style: italic;
+            text-align: center;
+          }
+
+          .unchanged {
+          }
+
+          .added {
+            background-color:#a4ffa4;
+          }
+
+          .removed {
+            background-color:#ffa4a4;
+          }
+
+          .flexchild {
+            @apply(--layout-flex);
+          }
+        </style>
+        <paper-item>
+          <paper-card>
+            <paper-toolbar on-tap="toggleHidden">
+              <div class="flexchild">{{details.description}}</div>
+            </paper-toolbar>
+            <div hidden$="{{hidden}}" class="diff-contents">
+              <template is="dom-repeat" items="{{details.diffLines}}">
+                <div class="omitted" hidden$="{{item.hideStatus}}">
+                  <div class$="flexchild">{{item.text}}</div>
+                </div>
+                <div class="diff-line" hidden$="{{item.hideLineNumbers}}">
+                  <div class="line-number">
+                    <div hidden$="{{item.hideLeftLineNumber}}">{{item.lhsNumber}}</div>
+                  </div>
+                  <div class="line-number">
+                    <div hidden$="{{item.hideRightLineNumber}}">{{item.rhsNumber}}</div>
+                  </div>
+                  <div class$="flexchild sourcecode {{item.status}}">{{item.text}}</div>
+                </div>
+              </template>
+            </div>
+          </paper-card>
+        </paper-item>
+       </template>
+      <script>
+        Polymer({
+          is: 'file-diff',
+          properties: {
+            details: {
+              type: Object,
+            },
+            hidden: {
+              type: Boolean,
+              value: false
+            }
+          },
+          toggleHidden: function() {
+            this.hidden = !this.hidden;
+          }
+        });
+      </script>
+    </dom-module>
+
+    <dom-module id="inline-diff">
+      <template>
+        <paper-listbox>
+          <template is="dom-repeat" items="{{files}}">
+            <file-diff details="{{item}}"></file-diff>
+          </template>
+        </paper-listbox>
+      </template>
+      <script>
+        function parseUnifiedDiff(diff) {
+          var fileDiffs = diff.split("\ndiff --git ");
+          var files = [];
+          for (var f in fileDiffs) {
+            files.push(parseFileDiff(fileDiffs[f]));
+          }
+          return files;
+
+          function parseFileDiff(fileDiff) {
+            var fileLines = fileDiff.split("\n");
+            var fileNames = fileLines[0].split(" ");
+            var rhsFileName = fileNames[fileNames.length-1];
+            var lhsFileName = fileNames[fileNames.length-2];
+            var lhsNumber = 0;
+            var rhsNumber = 0;
+            var lines = [];
+            for (var i in fileLines) {
+              var text = fileLines[i];
+              if (text.startsWith("--- ")) {
+                lhsFileName = text.substring(4);
+              } else if (text.startsWith("+++ ")) {
+                rhsFileName = text.substring(4);
+              } else if (text.startsWith("@@ ")) {
+                var fromLinePart = text.substring(4, text.indexOf(","));
+                var toLinePart = text.substring(text.indexOf("+"), text.lastIndexOf(","));
+                var nextLhsNumber = parseInt(fromLinePart);
+                var omittedCount = nextLhsNumber - lhsNumber;
+                lhsNumber = nextLhsNumber;
+                rhsNumber = parseInt(toLinePart);
+                if (omittedCount > 0) {
+                  lines.push(
+                    new DiffLine(
+                      lhsNumber,
+                      rhsNumber,
+                      "omitted",
+                      "Skipped " + omittedCount + " unchanged lines"));
+                }
+              } else if (text.startsWith("-")) {
+                lines.push(new DiffLine(lhsNumber, rhsNumber, "removed", text.substring(1)));
+                lhsNumber++;
+              } else if (text.startsWith("+")) {
+                lines.push(new DiffLine(lhsNumber, rhsNumber, "added", text.substring(1)));
+                rhsNumber++;
+              } else if (text.startsWith(" ")) {
+                lines.push(new DiffLine(lhsNumber, rhsNumber, "unchanged", text.substring(1)));
+                lhsNumber++;
+                rhsNumber++;
+              }
+            }
+            var description = getFileDescription(lhsFileName, rhsFileName);
+            var id = "file" + files.length;
+            return new File(description, id, lines);
+          }
+
+          function getFileDescription(lhsFileName, rhsFileName) {
+            if (lhsFileName.startsWith("a/") && rhsFileName.startsWith("b/")) {
+              lhsFileName = lhsFileName.substring(2);
+              rhsFileName = rhsFileName.substring(2);
+              if (lhsFileName == rhsFileName) {
+                return "Modified " + lhsFileName;
+              } else {
+                return "Renamed " + lhsFileName + " to " + rhsFileName;
+              }
+            } else if (lhsFileName.startsWith("a/")) {
+              return "Deleted " + lhsFileName.substring(2);
+            } else {
+              return "Added " + rhsFileName.substring(2);
+            }
+          }
+
+          function DiffLine(lhsNumber, rhsNumber, status, text) {
+            this.lhsNumber = lhsNumber;
+            this.rhsNumber = rhsNumber;
+            this.status = status;
+            this.text = text;
+
+            this.hideStatus = status != "omitted";
+            this.hideLineNumbers = status == "omitted";
+            this.hideLeftLineNumber = status == "omitted" || status == "added";
+            this.hideRightLineNumber = status == "omitted" || status == "removed";
+          }
+
+          function File(description, id, diffLines) {
+            this.description = description;
+            this.id = id;
+            this.diffLines = diffLines;
+            this.hidden = false;
+          }
+        }
+
+        Polymer({
+          is: 'inline-diff',
+          properties: {
+            summary: {
+              type: Object,
+              observer: '_parseDiff'
+            },
+          },
+          _parseDiff: function() {
+            if (this.summary &&
+                ((typeof this.summary) == 'object') &&
+                'contents' in this.summary) {
+              this.files = parseUnifiedDiff(this.summary.contents);
+            }
+          }
+        });
+      </script>
+    </dom-module>
+  </body>
+</html>

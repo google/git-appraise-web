@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 Google Inc. All rights reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+<html>
+  <head>
+    <link rel="import" href="https://cdn.rawgit.com/download/polymer-cdn/1.2.3.2/lib/polymer/polymer.html">
+    <link rel="import" href="https://cdn.rawgit.com/download/polymer-cdn/1.2.3.2/lib/paper-card/paper-card.html">
+    <link rel="import" href="https://cdn.rawgit.com/download/polymer-cdn/1.2.3.2/lib/paper-toolbar/paper-toolbar.html">
+
+    <link rel="import" href="/static/timestamp.html">
+  </head>
+  <body>
+    <dom-module id="continuous-integration">
+      <template>
+        <style>
+          .success {
+            background-color:#a4ffa4;
+          }
+
+          .failure {
+            background-color:#ffa4a4;
+          }
+        </style>
+        <paper-card>
+          <paper-toolbar on-tap="toggleHidden">
+            <span class="title">Continuous Integration:</span>
+          </paper-toolbar>
+          <table hidden$="{{hidden}}">
+            <template is="dom-repeat" items="{{reports}}">
+              <tr class$="{{item.status}}" hidden$="{{item.hidden}}">
+                <td><friendly-timestamp timestamp="{{item.timestamp}}"></friendly-timestamp></td>
+                <td>{{item.agent}}</td>
+                <td>
+                  <a href="{{item.url}}" hidden$="{{item.hideUrl}}">{{item.status}}</a>
+                  <span hidden$="{{item.url}}">{{item.status}}</span>
+                </td>
+              </tr>
+            </template>
+          </table>
+        </paper-card>
+      </template>
+      <script>
+        Polymer({
+          is: 'continuous-integration',
+          properties: {
+            reports: {
+              type: Array,
+              observer: '_canonicalReports'
+            },
+            hidden: {
+              type: Boolean,
+              value: false
+            }
+          },
+          _canonicalReports: function() {
+            for (var r in this.reports) {
+              var report = this.reports[r];
+              report.hidden = !('status' in report);
+              if (!('url' in report)) {
+                report.hideUrl = true;
+              }
+            }
+          },
+          toggleHidden: function() {
+            this.hidden = !this.hidden;
+          }
+        });
+      </script>
+    </dom-module>
+  </body>
+</html>

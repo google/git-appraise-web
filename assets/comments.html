@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 Google Inc. All rights reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+<html>
+  <head>
+    <link rel="import" href="https://cdn.rawgit.com/download/polymer-cdn/1.2.3.2/lib/polymer/polymer.html">
+    <link rel="import" href="https://cdn.rawgit.com/download/polymer-cdn/1.2.3.2/lib/paper-card/paper-card.html">
+    <link rel="import" href="https://cdn.rawgit.com/download/polymer-cdn/1.2.3.2/lib/paper-item/paper-item.html">
+    <link rel="import" href="https://cdn.rawgit.com/download/polymer-cdn/1.2.3.2/lib/paper-listbox/paper-listbox.html">
+    <link rel="import" href="https://cdn.rawgit.com/download/polymer-cdn/1.2.3.2/lib/paper-toolbar/paper-toolbar.html">
+
+    <link rel="import" href="/static/markdown.html">
+    <link rel="import" href="/static/timestamp.html">
+  </head>
+  <body>
+    <dom-module id="comment-thread">
+      <template>
+        <style>
+          paper-toolbar {
+            @apply(--layout-horizontal);
+            color: black;
+          }
+
+          .fyi {
+            background-color:#e4e4e4;
+          }
+
+          .lgtm {
+            background-color:#e4ffe4;
+          }
+
+          .nmw {
+            background-color:#ffe4e4;
+          }
+
+          .flexchild {
+            @apply(--layout-flex);
+          }
+
+          .author {
+            width: inherit;
+            padding: inherit;
+          }
+        </style>
+        <paper-item>
+          <paper-card>
+            <paper-toolbar class$="{{status}}" on-tap="toggleHidden">
+              <friendly-timestamp timestamp="{{thread.comment.timestamp}}"></friendly-timestamp>
+              <div class="flexchild author">{{thread.comment.author}}</div>
+              <div>{{status}}</div>
+            </paper-toolbar>
+            <div hidden$="{{hidden}}">
+              <markdown-field text="{{thread.comment.description}}"></markdown-field>
+              <comment-threads items="{{thread.children}}"></comment-threads>
+            </div>
+          </paper-card>
+        </paper-item>
+      </template>
+      <script>
+        function getCommentThreadStatus(commentThread) {
+          if ('resolved' in commentThread) {
+            if (commentThread.resolved) {
+              return 'lgtm';
+            } else {
+              return 'nmw';
+            }
+          } else {
+            return 'fyi';
+          }
+        }
+
+        Polymer({
+          is: 'comment-thread',
+          properties: {
+            thread: {
+              type: Object,
+              observer: '_displayThreads'
+            },
+            hidden: {
+              type: Boolean,
+              value: false
+            },
+            status: {
+              type: String,
+              value: 'fyi'
+            }
+          },
+          _displayThreads: function() {
+            if (this.thread &&
+                ((typeof this.thread) == 'object') &&
+                this.thread.comment &&
+                ((typeof this.thread.comment) == 'object')) {
+              this.status = getCommentThreadStatus(this.thread);
+              if (!('description' in this.thread.comment)) {
+                this.thread.comment.description = '';
+              }
+            }
+          },
+          toggleHidden: function() {
+            this.hidden = !this.hidden;
+          }
+        });
+      </script>
+    </dom-module>
+
+    <dom-module id="comment-threads">
+      <template>
+        <paper-listbox>
+          <template is="dom-repeat" items="{{items}}">
+            <comment-thread thread="{{item}}"></comment-thread>
+          </template>
+        </paper-listbox>
+      </template>
+      <script>
+        Polymer({
+          is: 'comment-threads',
+          properties: {
+            items: {
+              type: Array
+            }
+          }
+        });
+      </script>
+    </dom-module>
+  </body>
+</html>

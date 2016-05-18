@@ -17,31 +17,56 @@ limitations under the License.
 <html>
 <head>
   <title>Repository List</title>
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" />
-  <link rel="stylesheet" href="/static/reviews.css" />
   <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/webcomponentsjs/0.7.22/webcomponents-lite.min.js"></script>
   <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.26/angular.min.js"></script>
-  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.26/angular-sanitize.js"></script>
+
+  <link rel="import" href="https://cdn.rawgit.com/download/polymer-cdn/1.2.3.2/lib/polymer/polymer.html">
+  <link rel="import" href="https://cdn.rawgit.com/download/polymer-cdn/1.2.3.2/lib/paper-card/paper-card.html">
+  <link rel="import" href="https://cdn.rawgit.com/download/polymer-cdn/1.2.3.2/lib/paper-item/paper-item.html">
+  <link rel="import" href="https://cdn.rawgit.com/download/polymer-cdn/1.2.3.2/lib/paper-listbox/paper-listbox.html">
+  <link rel="import" href="https://cdn.rawgit.com/download/polymer-cdn/1.2.3.2/lib/paper-toolbar/paper-toolbar.html">
+
+  <link rel="stylesheet" href="/static/reviews.css">
 </head>
 <body ng-app="gitAppraiseWeb">
+  <dom-module id="repo-list">
+    <template>
+      <style>
+        .repo {
+          width: 100%;
+          padding: 20px;
+          font-size: medium;
+        }
+      </style>
+      <paper-toolbar>
+        <span class="title">Git-Appraise Web UI > Repositories</span>
+      </paper-toolbar>
+      <paper-listbox>
+        <template is="dom-repeat" items="{{repos}}">
+          <paper-item>
+            <paper-card>
+              <div class="repo"><a href="/static/reviews.html#?repo={{item.id}}">{{item.name}}</a></div>
+            </paper-card>
+          </paper-item>
+        </template>
+      </paper-listbox>
+    </template>
+    <script>
+      Polymer({
+        is: 'repo-list',
+        properties: {
+          repos: {
+            type: Array,
+          },
+        }
+      });
+    </script>
+  </dom-module>
+
   <div ng-controller="listRepos">
-    <div class="container">
-      <div class="row">
-        <div class="col-md-12">
-          <h1 class="text-center csblue">Git-Appraise Web</h1>
-        </div>
-      </div>
-      <div class="row header-bar">
-        <div class="col-md-12">
-          <b>Repositories:</b>
-        </div>
-      </div>
-      <div class="row alternate_row" ng-repeat="repo in repositories">
-        <div class="col-md-12">
-          <a href="/static/reviews.html#?repo={{repo.id}}">{{repo.name}}</a>
-        </div>
-      </div>
-    </div>
+    <repo-list repos="{{repositories}}"></repo-list>
   </div>
 
   <script src="/static/reviews.js"></script>

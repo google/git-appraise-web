@@ -13,66 +13,56 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-.alternate_row:nth-child(even){
-  background-color: #f4f4f4;
-}
-.alternate_row:nth-child(odd){
-  background-color: #ffffff;
+
+body {
+  margin: 0px;
 }
 
-.csblue {
-  color:#4787ed;
+paper-item {
+  width: inherit;
+  padding-bottom: 10px;
 }
 
-.header-bar {
-  background-color:#e3e9ff;
-  margin-top: 12px;
-  margin-bottom: 12px;
+paper-listbox {
+  line-height: initial;
 }
 
-.desc {
-  white-space: pre;
+paper-item.paper-item-0 {
+  min-height: inherit;
+  line-height: initial;
 }
 
-.file-diff {
-  padding-right: 0px;
-  padding-left: 0px;
+paper-item.paper-item-0.iron-selected {
+  font-weight: normal;
 }
 
-.diff-header {
-  background-color:#e4e4e4;
+paper-card {
+  width: 100%;
+  font-size: medium;
 }
 
-.comment-header {
-  background-color:#e4e4e4;
+paper-toolbar.paper-toolbar-0 {
+  width: inherit;
+  height: initial;
 }
 
-.lgtm {
-  background-color:#e4ffe4;
+.toolbar-tools.paper-toolbar .title {
+  font-size: medium;
 }
 
-.nmw {
-  background-color:#ffe4e4;
+#topBar.paper-toolbar {
+  width: inherit;
+  height: 40px;
 }
 
-.omitted {
-  background-color:#f4f4f4;
+table {
+  width: 100%;
+  padding: inherit;
+  border-spacing: 0;
 }
 
-.unchanged {
-  white-space: pre-wrap;
+tr {
+  width: inherit;
+  padding: inherit;
 }
 
-.added {
-  background-color:#a4ffa4;
-  white-space: pre-wrap;
-}
-
-.removed {
-  background-color:#ffa4a4;
-  white-space: pre-wrap;
-}
-
-blockquote {
-  font-size: 14px;
-}

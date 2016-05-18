@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-var gitAppraiseWeb=angular.module("gitAppraiseWeb", ["ngSanitize"]);
+var gitAppraiseWeb=angular.module("gitAppraiseWeb", []);
 
 // Get a repository name from the full path.
 function getLastPathElement(path) {
@@ -36,96 +36,6 @@ function getSummary(desc) {
     result = result.substring(0, 80);
   }
   return result;
-}
-
-// Given a timestamp as the seconds from the unix epoch, return the human-friendly version.
-function friendlyTimestamp(timestamp) {
-  return new Date(parseInt(timestamp) * 1000).toLocaleString();
-}
-
-function parseUnifiedDiff(diff) {
-  var fileDiffs = diff.split("\ndiff --git ");
-  var files = [];
-  for (var f in fileDiffs) {
-    files.push(parseFileDiff(fileDiffs[f]));
-  }
-  return files;
-
-  function parseFileDiff(fileDiff) {
-    var fileLines = fileDiff.split("\n");
-    var fileNames = fileLines[0].split(" ");
-    var rhsFileName = fileNames[fileNames.length-1];
-    var lhsFileName = fileNames[fileNames.length-2];
-    var lhsNumber = 0;
-    var rhsNumber = 0;
-    var lines = [];
-    for (var i in fileLines) {
-      var text = fileLines[i];
-      if (text.startsWith("--- ")) {
-        lhsFileName = text.substring(4);
-      } else if (text.startsWith("+++ ")) {
-        rhsFileName = text.substring(4);
-      } else if (text.startsWith("@@ ")) {
-        var fromLinePart = text.substring(4, text.indexOf(","));
-        var toLinePart = text.substring(text.indexOf("+"), text.lastIndexOf(","));
-        var nextLhsNumber = parseInt(fromLinePart);
-        var omittedCount = nextLhsNumber - lhsNumber;
-        lhsNumber = nextLhsNumber;
-        rhsNumber = parseInt(toLinePart);
-        if (omittedCount > 0) {
-          lines.push(
-            new DiffLine(
-              lhsNumber,
-              rhsNumber,
-              "omitted",
-              "Skipped " + omittedCount + " unchanged lines"));
-        }
-      } else if (text.startsWith("-")) {
-        lines.push(new DiffLine(lhsNumber, rhsNumber, "removed", text.substring(1)));
-        lhsNumber++;
-      } else if (text.startsWith("+")) {
-        lines.push(new DiffLine(lhsNumber, rhsNumber, "added", text.substring(1)));
-        rhsNumber++;
-      } else if (text.startsWith(" ")) {
-        lines.push(new DiffLine(lhsNumber, rhsNumber, "unchanged", text.substring(1)));
-        lhsNumber++;
-        rhsNumber++;
-      }
-    }
-    var description = getFileDescription(lhsFileName, rhsFileName);
-    var id = "file" + files.length;
-    return new File(description, id, lines);
-  }
-
-  function getFileDescription(lhsFileName, rhsFileName) {
-    if (lhsFileName.startsWith("a/") && rhsFileName.startsWith("b/")) {
-      lhsFileName = lhsFileName.substring(2);
-      rhsFileName = rhsFileName.substring(2);
-      if (lhsFileName == rhsFileName) {
-        return "Modified " + lhsFileName;
-      } else {
-        return "Renamed " + lhsFileName + " to " + rhsFileName;
-      }
-    } else if (lhsFileName.startsWith("a/")) {
-      return "Deleted " + lhsFileName.substring(2);
-    } else {
-      return "Added " + rhsFileName.substring(2);
-    }
-  }
-
-  function DiffLine(lhsNumber, rhsNumber, status, text) {
-    this.lhsNumber = lhsNumber;
-    this.rhsNumber = rhsNumber;
-    this.status = status;
-    this.text = text;
-  }
-
-  function File(description, id, diffLines) {
-    this.description = description;
-    this.id = id;
-    this.diffLines = diffLines;
-    this.display = true;
-  }
 }
 
 gitAppraiseWeb.controller("listRepos", function($scope,$http) {
@@ -187,7 +97,7 @@ gitAppraiseWeb.controller("listReviews", function($scope,$http,$location) {
 
   function Review(revision, timestamp, desc, summary) {
     this.revision = revision;
-    this.timestamp = friendlyTimestamp(timestamp);
+    this.timestamp = timestamp;
     this.desc = desc;
     this.summary = summary;
   }
@@ -199,11 +109,10 @@ gitAppraiseWeb.controller("getReview", function($scope,$http,$location) {
   $http.get("/api/repo_summary?repo=" + repo).success(
     function(response) {$scope.path = getLastPathElement(response.path);});
   $http.get("/api/review_details?repo=" + repo + "&review=" + review).success(
-    function(response) {$scope.details = processReview(response);});
+    function(response) {$scope.details = response;});
   $http.get("/api/review_diff?repo=" + repo + "&review=" + review).success(
     function(response) {
       $scope.diff = response;
-      $scope.diff.files = parseUnifiedDiff(response.contents);
       $scope.diff.reviewCommits = friendlyCommits($scope.diff.reviewCommits);
     });
 
@@ -211,54 +120,8 @@ gitAppraiseWeb.controller("getReview", function($scope,$http,$location) {
     for (var i in commits) {
       var commit = commits[i];
       commit.name = commit.id.substring(0,6);
-      commit.details.time = friendlyTimestamp(commit.details.time);
     }
     commits.reverse();
     return commits
-  }
-
-  function friendlyCommentTimestamps(commentThread) {
-    var timestamp = commentThread.comment.timestamp;
-    commentThread.comment.timestamp = friendlyTimestamp(timestamp);
-    for (var i in commentThread.children) {
-      friendlyCommentTimestamps(commentThread.children[i]);
-    }
-  }
-
-  function generateCommentHtml(converter, commentThread) {
-    commentThread.html = converter.makeHtml(commentThread.comment.description);
-    commentThread.display = true;
-    if ('resolved' in commentThread) {
-      if (commentThread.resolved) {
-        commentThread.status = 'lgtm';
-      } else {
-        commentThread.status = 'nmw';
-      }
-    } else {
-      commentThread.status = 'fyi';
-    }
-    for (var i in commentThread.children) {
-      generateCommentHtml(converter, commentThread.children[i]);
-    }
-  }
-
-  function friendlyTimestamps(reviewDetails) {
-    for (var i in reviewDetails.reports) {
-      var report = reviewDetails.reports[i];
-      var timestamp = report.timestamp;
-      report.timestamp = friendlyTimestamp(timestamp);
-    }
-    for (var i in reviewDetails.comments) {
-      friendlyCommentTimestamps(reviewDetails.comments[i]);
-    }
-  }
-
-  function processReview(reviewDetails) {
-    friendlyTimestamps(reviewDetails);
-    converter = new showdown.Converter();
-    for (var i in reviewDetails.comments) {
-      generateCommentHtml(converter, reviewDetails.comments[i]);
-    }
-    return reviewDetails;
   }
 });
