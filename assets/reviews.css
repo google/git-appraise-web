@@ -54,3 +54,15 @@ paper-toolbar.paper-toolbar-0 {
   width: inherit;
   height: 40px;
 }
+
+table {
+  width: 100%;
+  padding: inherit;
+  border-spacing: 0;
+}
+
+tr {
+  width: inherit;
+  padding: inherit;
+}
+
