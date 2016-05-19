@@ -13,6 +13,6 @@ fmt:
 assets: FORCE
 	go get -u github.com/jteeuwen/go-bindata/...
 	rm assets/*~ 2>/dev/null || true
-	$(GOPATH)/bin/go-bindata -modtime 1 -pkg assets -o assets/assets.go assets/
+	$(GOPATH)/bin/go-bindata -modtime 1 -pkg assets -o third_party/assets/assets.go assets/
 
 FORCE:
