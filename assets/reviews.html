@@ -30,6 +30,8 @@ limitations under the License.
 
   <link rel="import" href="/static/timestamp.html">
   <link rel="stylesheet" href="/static/reviews.css">
+
+  <script src="/static/reviews.js"></script>
 </head>
 <body ng-app="gitAppraiseWeb">
   <dom-module id="review-list">
@@ -89,7 +91,5 @@ limitations under the License.
       <review-list repo="{{repo}}" title="Closed Reviews" reviews="{{closedReviews}}"></review-list>
     <paper-listbox>
   </div>
-
-  <script src="/static/reviews.js"></script>
 </body>
 </html>

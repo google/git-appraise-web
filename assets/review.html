@@ -34,6 +34,8 @@ limitations under the License.
   <link rel="import" href="/static/ci.html">
   <link rel="import" href="/static/markdown.html">
   <link rel="stylesheet" href="/static/reviews.css">
+
+  <script src="/static/reviews.js"></script>
 </head>
 <body ng-app="gitAppraiseWeb">
   <dom-module id="review-details">
@@ -177,7 +179,5 @@ limitations under the License.
   <div ng-controller="getReview">
     <review-details repo="{{path}}" details="{{details}}" diff="{{diff}}"></review-details>
   </div>
-
-  <script src="/static/reviews.js"></script>
 </body>
 </html>

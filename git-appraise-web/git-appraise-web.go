@@ -26,7 +26,7 @@ import (
 	"strings"
 
 	"github.com/google/git-appraise-web/api"
-	"github.com/google/git-appraise-web/assets"
+	"github.com/google/git-appraise-web/third_party/assets"
 	"github.com/google/git-appraise/repository"
 )
 
