@@ -29,6 +29,8 @@ limitations under the License.
   <link rel="import" href="https://cdn.rawgit.com/download/polymer-cdn/1.2.3.2/lib/paper-toolbar/paper-toolbar.html">
 
   <link rel="stylesheet" href="/static/reviews.css">
+
+  <script src="/static/reviews.js"></script>
 </head>
 <body ng-app="gitAppraiseWeb">
   <dom-module id="repo-list">
@@ -68,7 +70,5 @@ limitations under the License.
   <div ng-controller="listRepos">
     <repo-list repos="{{repositories}}"></repo-list>
   </div>
-
-  <script src="/static/reviews.js"></script>
 </body>
 </html>
