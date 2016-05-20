@@ -54,6 +54,34 @@ limitations under the License.
             width: inherit;
             padding: inherit;
           }
+
+          .snippet-contents {
+            border: lightgrey;
+            border-style: solid;
+            border-width: thin;
+          }
+
+          .snippet-line {
+            @apply(--layout-horizontal);
+            width: inherit;
+            line-height: normal;
+          }
+
+          .line-number {
+            width: 40px;
+            background-color:#f4f4f4;
+            font-family: monospace;
+            border-right: lightgrey;
+            border-right-style: solid;
+            border-right-width: thin;
+          }
+
+          .sourcecode {
+            font-family: monospace;
+            white-space: pre-wrap;
+            word-break: break-all;
+            width: inherit;
+          }
         </style>
         <paper-item>
           <paper-card>
@@ -62,6 +90,16 @@ limitations under the License.
               <div class="flexchild author">{{thread.comment.author}}</div>
               <div>{{status}}</div>
             </paper-toolbar>
+            <div hidden$="{{hideSnippet}}" class="snippet-contents">
+              <template is="dom-repeat" items="{{thread.snippet.lines}}">
+                <div class="snippet-line">
+                  <div class="line-number">
+                    <div>{{item.lineNumber}}</div>
+                  </div>
+                  <div class="flexchild sourcecode">{{item.contents}}</div>
+                </div>
+              </template>
+            </div>
             <div hidden$="{{hidden}}">
               <markdown-field text="{{thread.comment.description}}"></markdown-field>
               <comment-threads items="{{thread.children}}"></comment-threads>
@@ -93,6 +131,10 @@ limitations under the License.
               type: Boolean,
               value: false
             },
+            hideSnippet: {
+              type: Boolean,
+              value: true
+            },
             status: {
               type: String,
               value: 'fyi'
@@ -104,6 +146,7 @@ limitations under the License.
                 this.thread.comment &&
                 ((typeof this.thread.comment) == 'object')) {
               this.status = getCommentThreadStatus(this.thread);
+              this.hideSnippet = !('snippet' in this.thread);
               if (!('description' in this.thread.comment)) {
                 this.thread.comment.description = '';
               }
