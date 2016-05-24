@@ -167,7 +167,6 @@ gitAppraiseWeb.controller("getReview", function($scope,$http,$location) {
                   snippetLines.push(new SnippetLine(i+1, contentLines[i]));
                 }
                 var snippet = new Snippet(commit, path, snippetLines);
-                console.log("Loaded snippet: " + JSON.stringify(snippet));
                 for (var h in pathLines[line]) {
                   var hash = pathLines[line][h];
                   for (var i in commentThreads) {
@@ -200,6 +199,7 @@ gitAppraiseWeb.controller("getReview", function($scope,$http,$location) {
 
   function Snippet(commit, path, lines) {
     this.commit = commit;
+    this.friendlyCommit = commit.substring(0,6);
     this.path = path;
     this.lines = lines;
   }

@@ -55,6 +55,15 @@ limitations under the License.
             padding: inherit;
           }
 
+          .snippet-header {
+            width: inherit;
+            background-color:#f4f4f4;
+            font-family: monospace;
+            border-bottom: lightgrey;
+            border-bottom-style: solid;
+            border-bottom-width: thin;
+          }
+
           .snippet-contents {
             border: lightgrey;
             border-style: solid;
@@ -91,6 +100,7 @@ limitations under the License.
               <div>{{status}}</div>
             </paper-toolbar>
             <div hidden$="{{hideSnippet}}" class="snippet-contents">
+              <div class="snippet-header">{{thread.snippet.path}}@{{thread.snippet.friendlyCommit}}</div>
               <template is="dom-repeat" items="{{thread.snippet.lines}}">
                 <div class="snippet-line">
                   <div class="line-number">
@@ -131,6 +141,10 @@ limitations under the License.
               type: Boolean,
               value: false
             },
+            inline: {
+              type: Boolean,
+              value: false
+            },
             hideSnippet: {
               type: Boolean,
               value: true
@@ -146,7 +160,7 @@ limitations under the License.
                 this.thread.comment &&
                 ((typeof this.thread.comment) == 'object')) {
               this.status = getCommentThreadStatus(this.thread);
-              this.hideSnippet = !('snippet' in this.thread);
+              this.hideSnippet = this.inline || !('snippet' in this.thread);
               if (!('description' in this.thread.comment)) {
                 this.thread.comment.description = '';
               }
