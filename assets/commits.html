@@ -18,30 +18,112 @@ limitations under the License.
   <head>
     <link rel="import" href="https://cdn.rawgit.com/download/polymer-cdn/1.2.3.2/lib/polymer/polymer.html">
     <link rel="import" href="https://cdn.rawgit.com/download/polymer-cdn/1.2.3.2/lib/paper-toolbar/paper-toolbar.html">
+    <link rel="import" href="https://cdn.rawgit.com/download/polymer-cdn/1.2.3.2/lib/paper-radio-button/paper-radio-button.html">
+
+    <link rel="import" href="/static/diff.html">
   </head>
   <body>
     <dom-module id="commits-list">
       <template>
+        <style>
+          .lhs-only {
+            background-color:#e4e4e4;
+          }
+          .radio {
+            width = 20px;
+          }
+          .commit-list {
+            border-bottom: lightgrey;
+            border-bottom-style: solid;
+            border-bottom-width: thin;
+          }
+        </style>
         <paper-toolbar on-tap="toggleHidden">
           <span class="title">Changes:</span>
         </paper-toolbar>
-        <table hidden$="{{hidden}}">
+        <table class="commit-list" hidden$="{{hidden}}">
           <template is="dom-repeat" items="{{commits}}">
-            <tr>
+            <tr class$="{{item.style}}">
               <td>{{item.name}}</td>
               <td><friendly-timestamp timestamp="{{item.details.time}}"></friendly-timestamp></td>
               <td class="author">{{item.details.authorEmail}}</td>
               <td class="summary">{{item.details.summary}}</td>
+              <td class="radio">
+                <paper-radio-button name="lhs"
+                                    checked="{{item.isLhs}}"
+                                    hidden$="{{item.hideLeftHandSelect}}"
+                                    disabled="true">
+                </paper-radio-button>
+              </td>
+              <td class="radio">
+                <paper-radio-button name="rhs"
+                                    checked="{{item.isRhs}}"
+                                    hidden$="{{item.hideRightHandSelect}}"
+                                    disabled="true">
+                </paper-radio-button>
+              </td>
             </tr>
           </template>
         </table>
+        <inline-diff summary="{{diff}}" hidden$="{{hidden}}"></inline-diff>
       </template>
       <script>
+        function friendlyCommits(review, lhs, rhs, commits) {
+          rhsCommits = {}
+
+          function addToRhs(commit) {
+            commit.style = "both";
+            commit.showRhs = true;
+            commit.hideRightHandSelect = false;
+            rhsCommits[commit.id] = commit;
+          }
+
+          for (var i in commits) {
+            var commit = commits[i];
+            commit.name = commit.id.substring(0,6);
+            commit.style = "lhs-only";
+            commit.hideLeftHandSelect = false;
+            commit.hideRightHandSelect = true;
+            commit.isLhs = (commit.id == lhs);
+            commit.isRhs = (commit.id == rhs);
+            if (commit.id == review) {
+              addToRhs(commit);
+            } else {
+              for (var p in commit.details.parents) {
+                var parent = commit.details.parents[p];
+                if (parent in rhsCommits) {
+                  addToRhs(commit);
+                }
+              }
+            }
+          }
+          commits.reverse();
+          commits[0].style = "rhs-only";
+          commits[0].hideLeftHandSelect = true;
+          return commits
+        }
+
         Polymer({
           is: 'commits-list',
           properties: {
+            review: {
+              type: String
+            },
+            diff: {
+              type: Object,
+              observer: "_updateDiff"
+            },
+            leftHandSide: {
+              type: String,
+              value: ""
+            },
+            rightHandSide: {
+              type: String,
+              value: ""
+            },
             commits: {
               type: Array,
+              value: []
             },
             hidden: {
               type: Boolean,
@@ -50,6 +132,15 @@ limitations under the License.
           },
           toggleHidden: function() {
             this.hidden = !this.hidden;
+          },
+          _updateDiff: function() {
+            if (this.diff && this.diff.reviewCommits) {
+              this.leftHandSide = this.diff.leftHandSide;
+              this.rightHandSide = this.diff.rightHandSide;
+              this.commits = friendlyCommits(this.review, this.leftHandSide,
+                                             this.rightHandSide,
+                                             this.diff.reviewCommits);
+            }
           }
         });
       </script>

@@ -30,7 +30,6 @@ limitations under the License.
 
   <link rel="import" href="/static/comments.html">
   <link rel="import" href="/static/commits.html">
-  <link rel="import" href="/static/diff.html">
   <link rel="import" href="/static/ci.html">
   <link rel="import" href="/static/markdown.html">
   <link rel="stylesheet" href="/static/reviews.css">
@@ -118,15 +117,7 @@ limitations under the License.
         </paper-item>
         <paper-item>
           <paper-card>
-            <commits-list commits="{{diff.reviewCommits}}"></commits-list>
-          </paper-card>
-        </paper-item>
-        <paper-item>
-          <paper-card>
-            <paper-toolbar>
-              <span class="title">Diff: {{diff.leftHandSide}} -&gt; {{diff.rightHandSide}}</span>
-            </paper-toolbar>
-            <inline-diff summary="{{diff}}"></inline-diff>
+            <commits-list review="{{details.revision}}" diff="{{diff}}"></commits-list>
           </paper-card>
         </paper-item>
         <paper-item>

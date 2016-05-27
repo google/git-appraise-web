@@ -114,10 +114,7 @@ gitAppraiseWeb.controller("getReview", function($scope,$http,$location) {
       loadSnippets(response.comments);
     });
   $http.get("/api/review_diff?repo=" + repo + "&review=" + review).success(
-    function(response) {
-      $scope.diff = response;
-      $scope.diff.reviewCommits = friendlyCommits($scope.diff.reviewCommits);
-    });
+    function(response) {$scope.diff = response;});
 
   function loadSnippets(commentThreads) {
     var commentLocations = {};
@@ -181,15 +178,6 @@ gitAppraiseWeb.controller("getReview", function($scope,$http,$location) {
           });
       }
     }
-  }
-
-  function friendlyCommits(commits) {
-    for (var i in commits) {
-      var commit = commits[i];
-      commit.name = commit.id.substring(0,6);
-    }
-    commits.reverse();
-    return commits
   }
 
   function SnippetLine(lineNumber, contents) {
