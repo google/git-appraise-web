@@ -100,6 +100,35 @@ func (cache RepoCache) ServeRepoSummaryJSON(w http.ResponseWriter, r *http.Reque
 	serveJSON(summary, w)
 }
 
+// ServeRepoContents writes the contents of a given file at a given commit.
+//
+// The repository, file, and commit are given by the 'repo', 'file' and 'commit'
+// URL parameters.
+func (cache RepoCache) ServeRepoContents(w http.ResponseWriter, r *http.Request) {
+	repoDetails, err := cache.getRepoDetails(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	commitParam := r.URL.Query().Get("commit")
+	if commitParam == "" {
+		http.Error(w, "No commit specified", http.StatusBadRequest)
+		return
+	}
+	fileParam := r.URL.Query().Get("file")
+	if fileParam == "" {
+		http.Error(w, "No file specified", http.StatusBadRequest)
+		return
+	}
+
+	contents, err := repoDetails.Repo.Show(commitParam, fileParam)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	w.Write([]byte(contents))
+}
+
 func getPageToken(r *http.Request) (page int, err error) {
 	pageParam := r.URL.Query().Get("page")
 	if pageParam != "" {

@@ -67,6 +67,7 @@ func serveRepos(cache api.RepoCache) {
 	http.HandleFunc("/static/", serveStaticContent)
 	http.HandleFunc("/api/repos", cache.ServeListReposJSON)
 	http.HandleFunc("/api/repo_summary", cache.ServeRepoSummaryJSON)
+	http.HandleFunc("/api/repo_contents", cache.ServeRepoContents)
 	http.HandleFunc("/api/closed_reviews", cache.ServeClosedReviewsJSON)
 	http.HandleFunc("/api/open_reviews", cache.ServeOpenReviewsJSON)
 	http.HandleFunc("/api/review_details", cache.ServeReviewDetailsJSON)

@@ -109,19 +109,86 @@ gitAppraiseWeb.controller("getReview", function($scope,$http,$location) {
   $http.get("/api/repo_summary?repo=" + repo).success(
     function(response) {$scope.path = getLastPathElement(response.path);});
   $http.get("/api/review_details?repo=" + repo + "&review=" + review).success(
-    function(response) {$scope.details = response;});
-  $http.get("/api/review_diff?repo=" + repo + "&review=" + review).success(
     function(response) {
-      $scope.diff = response;
-      $scope.diff.reviewCommits = friendlyCommits($scope.diff.reviewCommits);
+      $scope.details = response;
+      loadSnippets(response.comments);
     });
+  $http.get("/api/review_diff?repo=" + repo + "&review=" + review).success(
+    function(response) {$scope.diff = response;});
 
-  function friendlyCommits(commits) {
-    for (var i in commits) {
-      var commit = commits[i];
-      commit.name = commit.id.substring(0,6);
+  function loadSnippets(commentThreads) {
+    var commentLocations = {};
+    for (var i in commentThreads) {
+      var commentThread = commentThreads[i];
+      if ('location' in commentThread.comment) {
+        var location = commentThread.comment.location;
+        if (('commit' in location) && ('path' in location)) {
+          var commit = location.commit;
+          var path = location.path;
+          if (!(commit in commentLocations)) {
+            commentLocations[commit] = {};
+          }
+          var commitPaths = commentLocations[commit];
+          if (!(path in commitPaths)) {
+            commitPaths[path] = {};
+          }
+          var pathLines = commitPaths[path];
+          if ('range' in location) {
+            var range = location.range;
+            if ('startLine' in range) {
+              var line = range.startLine;
+              if (!(line in pathLines)) {
+                pathLines[line] = [];
+              }
+              var lineThreads = pathLines[line];
+              lineThreads.push(commentThread.hash);
+            }
+          }
+        }
+      }
     }
-    commits.reverse();
-    return commits
+
+    for (var commit in commentLocations) {
+      var commitPaths = commentLocations[commit];
+      for (var path in commitPaths) {
+        var pathLines = commitPaths[path];
+        $http.get("/api/repo_contents?repo=" + repo + "&commit=" + commit + "&file=" + path).success(
+          function(response) {
+            contentLines = response.split("\n");
+            for (var line in pathLines) {
+              if (line > 0 && line <= contentLines.length) {
+                var startingLine = Math.max(0, line - 5);
+                var endingLine = Math.max(0, line - 1);
+                var snippetLines = [];
+                for (var i = startingLine; i <= endingLine; i++) {
+                  snippetLines.push(new SnippetLine(i+1, contentLines[i]));
+                }
+                var snippet = new Snippet(commit, path, snippetLines);
+                for (var h in pathLines[line]) {
+                  var hash = pathLines[line][h];
+                  for (var i in commentThreads) {
+                    var commentThread = commentThreads[i];
+                    if (commentThread.hash == hash) {
+                      commentThread.snippet = snippet;
+                    }
+                  }
+                }
+              }
+            }
+          });
+      }
+    }
+  }
+
+  function SnippetLine(lineNumber, contents) {
+    this.lineNumber = lineNumber;
+    this.contents = contents;
+  }
+
+  function Snippet(commit, path, lines) {
+    this.commit = commit;
+    this.friendlyCommit = commit.substring(0,6);
+    this.path = path;
+    this.lines = lines;
   }
 });
