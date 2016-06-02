@@ -27,6 +27,11 @@ import (
 	"github.com/google/git-appraise/review"
 )
 
+const (
+	// SHA1 produces 160 bit hashes, so a hex-encoded hash should be no more than 40 characters.
+	maxHashLength = 40
+)
+
 // RepoCache encapsulates everything that the API server currently knows about every repository.
 type RepoCache map[string]*RepoDetails
 
@@ -36,10 +41,25 @@ func (cache RepoCache) AddRepo(repo repository.Repo) {
 	cache[repoDetails.ID] = repoDetails
 }
 
+func checkStringLooksLikeHash(s string) error {
+	if len(s) > maxHashLength {
+		return errors.New("Invalid hash parameter")
+	}
+	for _, c := range s {
+		if ((c < 'a') || (c > 'f')) && ((c < '0') || (c > '9')) {
+			return errors.New("Invalid hash character")
+		}
+	}
+	return nil
+}
+
 func (cache RepoCache) getRepoDetails(r *http.Request) (*RepoDetails, error) {
 	repoParam := r.URL.Query().Get("repo")
 	if repoParam == "" {
 		return nil, errors.New("No repository specified")
+	}
+	if err := checkStringLooksLikeHash(repoParam); err != nil {
+		return nil, err
 	}
 	repoDetails, ok := cache[repoParam]
 	if !ok {
@@ -56,6 +76,9 @@ func (cache RepoCache) getReview(r *http.Request) (*review.Review, error) {
 	reviewParam := r.URL.Query().Get("review")
 	if reviewParam == "" {
 		return nil, errors.New("No review specified")
+	}
+	if err := checkStringLooksLikeHash(reviewParam); err != nil {
+		return nil, err
 	}
 	reviewDetails, err := repoDetails.GetReview(reviewParam)
 	if err != nil {
@@ -115,6 +138,10 @@ func (cache RepoCache) ServeRepoContents(w http.ResponseWriter, r *http.Request)
 		http.Error(w, "No commit specified", http.StatusBadRequest)
 		return
 	}
+	if err := checkStringLooksLikeHash(commitParam); err != nil {
+		http.Error(w, "Invalid commit specified", http.StatusBadRequest)
+		return
+	}
 	fileParam := r.URL.Query().Get("file")
 	if fileParam == "" {
 		http.Error(w, "No file specified", http.StatusBadRequest)
@@ -135,6 +162,9 @@ func getPageToken(r *http.Request) (page int, err error) {
 		page, err = strconv.Atoi(pageParam)
 		if err != nil {
 			return 0, err
+		}
+		if page < 0 {
+			return 0, errors.New("Invalid page token")
 		}
 	}
 	return page, nil
@@ -211,6 +241,14 @@ func (cache RepoCache) ServeReviewDiff(w http.ResponseWriter, r *http.Request) {
 	}
 	lhs := r.URL.Query().Get("lhs")
 	rhs := r.URL.Query().Get("rhs")
+	if err := checkStringLooksLikeHash(lhs); err != nil {
+		http.Error(w, "Invalid left-hand-side commit specified", http.StatusBadRequest)
+		return
+	}
+	if err := checkStringLooksLikeHash(rhs); err != nil {
+		http.Error(w, "Invalid right-hand-side commit specified", http.StatusBadRequest)
+		return
+	}
 	diffSummary, err := NewDiffSummary(reviewDetails, lhs, rhs)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
