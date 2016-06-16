@@ -2,6 +2,10 @@
 
 This repository contains a read-only web UI for git-appraise reviews.
 
+## Try it now
+
+You can see a live demo of the UI running [here](https://git-appraise-web.appspot.com)
+
 ## Disclaimer
 
 This is not an official Google product.
