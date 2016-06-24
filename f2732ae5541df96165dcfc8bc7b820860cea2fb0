@@ -1,3 +1,5 @@
 {"timestamp":"1466639952","author":"ojarjur@google.com","location":{"commit":"f2732ae5541df96165dcfc8bc7b820860cea2fb0","path":"demo/pull.sh","range":{"startLine":29}},"description":"This should also fetch refs/heads/*"}
 
 {"timestamp":"1466788249","author":"ojarjur@google.com","parent":"f41c777ab8af766b295ca8707fd59e7fe4b7f33c","location":{"commit":"abdacf5b21539613696870f6adf72750819a49cf"},"description":"Done","resolved":true}
+
+{"timestamp":"1466788269","author":"ojarjur@google.com","location":{"commit":"abdacf5b21539613696870f6adf72750819a49cf"},"resolved":true}
