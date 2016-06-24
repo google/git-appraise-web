@@ -26,8 +26,10 @@ echo "OK"
 
 # Now we do the actual pulls
 cd /opt/src/github.com/google/git-appraise && \
+    git fetch origin '+refs/heads/*:refs/remotes/origin/*' && \
     git fetch origin '+refs/pull/*:refs/pull/*' && \
     /opt/bin/git-appraise pull
 cd /opt/src/github.com/google/git-appraise-web &&
+    git fetch origin '+refs/heads/*:refs/remotes/origin/*' && \
     git fetch origin '+refs/pull/*:refs/pull/*' && \
     /opt/bin/git-appraise pull
