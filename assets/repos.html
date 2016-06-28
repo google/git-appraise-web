@@ -56,13 +56,15 @@ limitations under the License.
       </paper-listbox>
     </template>
     <script>
-      Polymer({
-        is: 'repo-list',
-        properties: {
-          repos: {
-            type: Array,
-          },
-        }
+      addEventListener('WebComponentsReady', function() {
+        Polymer({
+          is: 'repo-list',
+          properties: {
+            repos: {
+              type: Array,
+            },
+          }
+        });
       });
     </script>
   </dom-module>
