@@ -132,37 +132,39 @@ limitations under the License.
       </paper-listbox>
     </template>
     <script>
-      Polymer({
-        is: 'review-details',
-        properties: {
-          repo: {
-            type: String
+      addEventListener('WebComponentsReady', function() {
+        Polymer({
+          is: 'review-details',
+          properties: {
+            repo: {
+              type: String
+            },
+            details: {
+              type: Object,
+              observer: '_updateDetailsStatus'
+            },
+            diff: {
+              type: Object
+            },
+            status: {
+              type: String,
+              value: 'pending'
+            }
           },
-          details: {
-            type: Object,
-            observer: '_updateDetailsStatus'
-          },
-          diff: {
-            type: Object
-          },
-          status: {
-            type: String,
-            value: 'pending'
-          }
-        },
-        _updateDetailsStatus: function() {
-          if (this.details && ((typeof this.details) == 'object')) {
-            if ('resolved' in this.details) {
-              if (this.details.resolved) {
-                this.status = 'accepted';
+          _updateDetailsStatus: function() {
+            if (this.details && ((typeof this.details) == 'object')) {
+              if ('resolved' in this.details) {
+                if (this.details.resolved) {
+                  this.status = 'accepted';
+                } else {
+                  this.status = 'rejected';
+                }
               } else {
-                this.status = 'rejected';
+                this.status = 'pending';
               }
-            } else {
-              this.status = 'pending';
             }
           }
-        }
+        });
       });
     </script>
   </dom-module>

@@ -60,26 +60,28 @@ limitations under the License.
       </paper-item>
     </template>
     <script>
-      Polymer({
-        is: 'review-list',
-        properties: {
-          repo: {
-            type: String,
+      addEventListener('WebComponentsReady', function() {
+        Polymer({
+          is: 'review-list',
+          properties: {
+            repo: {
+              type: String,
+            },
+            title: {
+              type: String,
+            },
+            reviews: {
+              type: Array,
+            },
+            hidden: {
+              type: Boolean,
+              value: false
+            }
           },
-          title: {
-            type: String,
-          },
-          reviews: {
-            type: Array,
-          },
-          hidden: {
-            type: Boolean,
-            value: false
+          toggleHidden: function() {
+            this.hidden = !this.hidden;
           }
-        },
-        toggleHidden: function() {
-          this.hidden = !this.hidden;
-        }
+        });
       });
     </script>
   </dom-module>
