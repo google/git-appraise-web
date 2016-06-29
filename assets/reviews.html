@@ -23,63 +23,40 @@ limitations under the License.
   <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.26/angular.min.js"></script>
 
   <link rel="import" href="https://cdn.rawgit.com/download/polymer-cdn/1.2.3.2/lib/polymer/polymer.html">
-  <link rel="import" href="https://cdn.rawgit.com/download/polymer-cdn/1.2.3.2/lib/paper-card/paper-card.html">
-  <link rel="import" href="https://cdn.rawgit.com/download/polymer-cdn/1.2.3.2/lib/paper-item/paper-item.html">
   <link rel="import" href="https://cdn.rawgit.com/download/polymer-cdn/1.2.3.2/lib/paper-listbox/paper-listbox.html">
   <link rel="import" href="https://cdn.rawgit.com/download/polymer-cdn/1.2.3.2/lib/paper-toolbar/paper-toolbar.html">
 
-  <link rel="import" href="/static/timestamp.html">
+  <link rel="import" href="/static/review-list.html">
   <link rel="stylesheet" href="/static/reviews.css">
 
   <script src="/static/reviews.js"></script>
 </head>
 <body ng-app="gitAppraiseWeb">
-  <dom-module id="review-list">
+  <dom-module id="reviews-list">
     <template>
-      <style>
-        .summary {
-          width: 100%;
-        }
-      </style>
-      <paper-item>
-        <paper-card>
-          <paper-toolbar on-tap="toggleHidden">
-            <span class="title">{{title}}</span>
-          </paper-toolbar>
-          <table hidden$="{{hidden}}">
-            <template is="dom-repeat" items="{{reviews}}">
-              <tr>
-                <td><friendly-timestamp timestamp="{{item.timestamp}}"></friendly-timestamp></td>
-                <td class="summary">
-                  <a href="/static/review.html#?repo={{repo}}&review={{item.revision}}">{{item.summary}}</a>
-                </td>
-              </tr>
-            </template>
-          </table>
-        </paper-card>
-      </paper-item>
+      <paper-toolbar><span class="title">Git-Appraise Web UI > {{path}}</span></paper-toolbar>
+      <paper-listbox>
+        <review-list repo="{{repo}}" title="Open Reviews" reviews="{{pending}}"></review-list>
+        <review-list repo="{{repo}}" title="Closed Reviews" reviews="{{submitted}}"></review-list>
+      <paper-listbox>
     </template>
     <script>
       addEventListener('WebComponentsReady', function() {
         Polymer({
-          is: 'review-list',
+          is: 'reviews-list',
           properties: {
+            path: {
+              type: String
+            },
             repo: {
-              type: String,
+              type: String
             },
-            title: {
-              type: String,
+            pending: {
+              type: Array
             },
-            reviews: {
-              type: Array,
-            },
-            hidden: {
-              type: Boolean,
-              value: false
+            submitted: {
+              type: Array
             }
-          },
-          toggleHidden: function() {
-            this.hidden = !this.hidden;
           }
         });
       });
@@ -87,11 +64,10 @@ limitations under the License.
   </dom-module>
 
   <div ng-controller="listReviews">
-    <paper-toolbar><span class="title">Git-Appraise Web UI > {{path}}</span></paper-toolbar>
-    <paper-listbox>
-      <review-list repo="{{repo}}" title="Open Reviews" reviews="{{openReviews}}"></review-list>
-      <review-list repo="{{repo}}" title="Closed Reviews" reviews="{{closedReviews}}"></review-list>
-    <paper-listbox>
+    <reviews-list path="{{path}}" repo="{{repo}}"
+                  pending="{{openReviews}}"
+                  submitted="{{closedReviews}}">
+    </reviews-list>
   </div>
 </body>
 </html>
