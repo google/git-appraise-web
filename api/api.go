@@ -261,7 +261,7 @@ func (cache RepoCache) ServeReviewDiff(w http.ResponseWriter, r *http.Request) {
 func (cache RepoCache) ServeEntryPointRedirect(w http.ResponseWriter, r *http.Request) {
 	if len(cache) == 1 {
 		for id := range cache {
-			http.Redirect(w, r, "/static/reviews.html?repo="+id, http.StatusTemporaryRedirect)
+			http.Redirect(w, r, "/static/reviews.html#?repo="+id, http.StatusTemporaryRedirect)
 			return
 		}
 	}
