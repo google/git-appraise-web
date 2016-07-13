@@ -40,12 +40,12 @@ limitations under the License.
 
           .diff-line {
             @apply(--layout-horizontal);
-            width: inherit;
+            width: 100%;
             line-height: normal;
           }
 
           .line-number {
-            @apply(--layout-horizontal);
+            @apply(--layout-vertical);
             width: 40px;
             background-color:#f4f4f4;
             font-family: monospace;
@@ -60,19 +60,15 @@ limitations under the License.
           }
 
           .sourcecode {
+            @apply(--layout-horizontal);
             font-family: monospace;
             white-space: pre-wrap;
             word-break: break-all;
-          }
-
-          .inline {
-            @apply(--layout-horizontal);
             width: 100%;
           }
 
           .side-by-side {
             @apply(--layout-horizontal);
-            width: 50%;
           }
 
           .omitted {
@@ -87,11 +83,14 @@ limitations under the License.
             border-top-width: thin;
           }
 
-          .missing {
+          .one-side {
+            @apply(--layout-vertical);
             background-color:#f4f4f4;
+            width: 50%;
           }
 
           .unchanged {
+            background-color:#ffffff;
           }
 
           .added {
@@ -113,40 +112,88 @@ limitations under the License.
             </paper-toolbar>
             <div hidden$="{{hidden}}" class="diff-contents">
               <div hidden$="{{hideInlineDiff}}">
-                <template is="dom-repeat" items="{{details.inlineDiffLines}}">
+                <template is="dom-repeat" items="{{details.diffBlocks}}">
                   <div class="omitted" hidden$="{{item.hideStatus}}">
-                    <div class$="flexchild">{{item.text}}</div>
+                    <div class$="flexchild">{{item.description}}</div>
                   </div>
-                  <div class="diff-line" hidden$="{{item.hideLineNumbers}}">
-                    <div class="line-number">
-                      <div hidden$="{{item.hideLeftLineNumber}}">{{item.lhsNumber}}</div>
+                  <template is="dom-repeat" items="{{item.unchangedLines}}">
+                    <div class="diff-line" hidden$="{{item.hideLines}}">
+                      <div class="line-number">{{item.lhsNumber}}</div>
+                      <div class="line-number">{{item.rhsNumber}}</div>
+                      <div class="flexchild sourcecode unchanged">{{item.text}}</div>
                     </div>
-                    <div class="line-number">
-                      <div hidden$="{{item.hideRightLineNumber}}">{{item.rhsNumber}}</div>
+                  </template>
+                  <template is="dom-repeat" items="{{item.lhsLines}}">
+                    <div class="diff-line" hidden$="{{item.hideLines}}">
+                      <div class="line-number">{{item.number}}</div>
+                      <div class="line-number"></div>
+                      <div class="flexchild sourcecode removed">{{item.text}}</div>
                     </div>
-                    <div class="inline">
-                      <div class$="flexchild sourcecode {{item.status}}">{{item.text}}</div>
+                  </template>
+                  <template is="dom-repeat" items="{{item.rhsLines}}">
+                    <div class="diff-line" hidden$="{{item.hideLines}}">
+                      <div class="line-number"></div>
+                      <div class="line-number">{{item.number}}</div>
+                      <div class="flexchild sourcecode added">{{item.text}}</div>
                     </div>
-                  </div>
+                  </template>
                 </template>
               </div>
               <div hidden$="{{hideSideBySideDiff}}">
-                <template is="dom-repeat" items="{{details.sideBySideDiffLines}}">
+                <template is="dom-repeat" items="{{details.diffBlocks}}">
                   <div class="omitted" hidden$="{{item.hideStatus}}">
-                    <div class$="flexchild">{{item.lhsText}}</div>
+                    <div class$="flexchild">{{item.description}}</div>
                   </div>
-                  <div class="diff-line" hidden$="{{item.hideLine}}">
+                  <div class="side-by-side" hidden$="{{item.hideLines}}">
                     <div class="line-number">
-                      <div hidden$="{{item.hideLeftLine}}">{{item.lhsNumber}}</div>
+                      <template is="dom-repeat" items="{{item.unchangedLines}}">
+                        <div>{{item.lhsNumber}}</div>
+                      </template>
                     </div>
-                    <div class$="side-by-side {{item.lhsStatus}}">
-                      <div class="flexchild sourcecode" hidden$="{{item.hideLeftLine}}">{{item.lhsText}}</div>
+                    <div class="one-side">
+                      <template is="dom-repeat" items="{{item.unchangedLines}}">
+                        <div class="flexchild diff-line">
+                          <div class="flexchild sourcecode unchanged">{{item.text}}</div>
+                        </div>
+                      </template>
                     </div>
                     <div class="line-number">
-                      <div hidden$="{{item.hideRightLine}}">{{item.rhsNumber}}</div>
+                      <template is="dom-repeat" items="{{item.unchangedLines}}">
+                        <div>{{item.lhsNumber}}</div>
+                      </template>
                     </div>
-                    <div class$="side-by-side {{item.rhsStatus}}">
-                      <div class="flexchild sourcecode" hidden$="{{item.hideRightLine}}">{{item.rhsText}}</div>
+                    <div class="one-side">
+                      <template is="dom-repeat" items="{{item.unchangedLines}}">
+                        <div class="flexchild diff-line">
+                          <div class="flexchild sourcecode unchanged">{{item.text}}</div>
+                        </div>
+                      </template>
+                    </div>
+                  </div>
+                  <div class="side-by-side" hidden$="{{item.hideLines}}">
+                    <div class="line-number">
+                      <template is="dom-repeat" items="{{item.lhsLines}}">
+                        <div>{{item.number}}</div>
+                      </template>
+                    </div>
+                    <div class="one-side">
+                      <template is="dom-repeat" items="{{item.lhsLines}}">
+                        <div class="flexchild diff-line">
+                          <div class="flexchild sourcecode removed">{{item.text}}</div>
+                        </div>
+                      </template>
+                    </div>
+                    <div class="line-number">
+                      <template is="dom-repeat" items="{{item.rhsLines}}">
+                        <div>{{item.number}}</div>
+                      </template>
+                    </div>
+                    <div class="one-side" hidden$="{{item.hideLines}}">
+                      <template is="dom-repeat" items="{{item.rhsLines}}">
+                        <div class="flexchild diff-line">
+                          <div class="flexchild sourcecode added">{{item.text}}</div>
+                        </div>
+                      </template>
                     </div>
                   </div>
                 </template>
@@ -207,9 +254,8 @@ limitations under the License.
             var lhsFileName = fileNames[fileNames.length-2];
             var lhsNumber = 1;
             var rhsNumber = 1;
-            var inlineDiffLines = [];
-            var sideBySideDiffLines = [];
-            var nextRhsLine = 0;
+            var diffBlocks = [];
+            var currBlock = null;
             for (var i in fileLines) {
               var text = fileLines[i];
               if (text.startsWith("--- ")) {
@@ -224,49 +270,37 @@ limitations under the License.
                 lhsNumber = nextLhsNumber;
                 rhsNumber = parseInt(toLinePart);
                 if (omittedCount > 0) {
-                  inlineDiffLines.push(
-                    new InlineDiffLine(
-                      lhsNumber,
-                      rhsNumber,
-                      "omitted",
-                      "Skipped " + omittedCount + " unchanged lines"));
-                  sideBySideDiffLines.push(
-                    new SideBySideDiffLine(
-                      lhsNumber,
-                      rhsNumber,
-                      "Skipped " + omittedCount + " unchanged lines",
-                      "",
-                      "omitted"));
+                  diffBlocks.push(new DiffBlock(
+                    "omitted", "Skipped " + omittedCount + " unchanged lines", [], [], []));
                 }
               } else if (text.startsWith("-")) {
-                inlineDiffLines.push(new InlineDiffLine(lhsNumber, rhsNumber, "removed", text.substring(1)));
-                sideBySideDiffLines.push(new SideBySideDiffLine(lhsNumber, rhsNumber, text.substring(1), "", "removed"));
+                if ((currBlock == null) || (currBlock.status != "changed")) {
+                  currBlock = new DiffBlock("changed", "", [], [], []);
+                  diffBlocks.push(currBlock);
+                }
+                currBlock.lhsLines.push(new DiffLine(lhsNumber, text.substring(1)));
                 lhsNumber++;
               } else if (text.startsWith("+")) {
-                inlineDiffLines.push(new InlineDiffLine(lhsNumber, rhsNumber, "added", text.substring(1)));
-                if (nextRhsLine < sideBySideDiffLines.length) {
-                  var oldLine = sideBySideDiffLines[nextRhsLine];
-                  var newLine = new SideBySideDiffLine(
-                    oldLine.lhsNumber, rhsNumber, oldLine.lhsText, text.substring(1), "changed");
-                  sideBySideDiffLines[nextRhsLine] = newLine;
-                } else {
-                  sideBySideDiffLines.push(new SideBySideDiffLine(lhsNumber, rhsNumber, "", text.substring(1), "added"));
+                if ((currBlock == null) || (currBlock.status != "changed")) {
+                  currBlock = new DiffBlock("changed", "", [], [], []);
+                  diffBlocks.push(currBlock);
                 }
+                currBlock.rhsLines.push(new DiffLine(rhsNumber, text.substring(1)));
                 rhsNumber++;
-                nextRhsLine++;
               } else if (text.startsWith(" ")) {
-                var status = "unchanged";
+                if ((currBlock == null) || (currBlock.status != "unchanged")) {
+                  currBlock = new DiffBlock("unchanged", "", [], [], []);
+                  diffBlocks.push(currBlock);
+                }
                 var lineText = text.substring(1);
-                inlineDiffLines.push(new InlineDiffLine(lhsNumber, rhsNumber, status, lineText));
-                sideBySideDiffLines.push(new SideBySideDiffLine(lhsNumber, rhsNumber, lineText, lineText, status));
+                currBlock.unchangedLines.push(new UnchangedLine(lhsNumber, rhsNumber, lineText));
                 lhsNumber++;
                 rhsNumber++;
-                nextRhsLine = sideBySideDiffLines.length;
               }
             }
             var description = getFileDescription(lhsFileName, rhsFileName);
             var id = "file" + files.length;
-            return new File(description, id, inlineDiffLines, sideBySideDiffLines);
+            return new File(description, id, diffBlocks);
           }
 
           function getFileDescription(lhsFileName, rhsFileName) {
@@ -285,47 +319,37 @@ limitations under the License.
             }
           }
 
-          function InlineDiffLine(lhsNumber, rhsNumber, status, text) {
+          function UnchangedLine(lhsNumber, rhsNumber, text) {
             this.lhsNumber = lhsNumber;
             this.rhsNumber = rhsNumber;
-            this.status = status;
             this.text = text;
-
-            this.hideStatus = status != "omitted";
-            this.hideLineNumbers = status == "omitted";
-            this.hideLeftLineNumber = status == "omitted" || status == "added";
-            this.hideRightLineNumber = status == "omitted" || status == "removed";
           }
 
-          function SideBySideDiffLine(lhsNumber, rhsNumber, lhsText, rhsText, status) {
-            this.lhsNumber = lhsNumber;
-            this.rhsNumber = rhsNumber;
-            this.lhsText = lhsText;
-            this.rhsText = rhsText;
+          function DiffLine(number, text) {
+            this.number = number;
+            this.text = text;
+          }
+
+          /**
+           * @param status one of the values "omitted", "changed", or "unchanged"
+           * @param lhsLines list of DiffLine values for the left-hand-side
+           * @param rhsLines list of DiffLine values for the left-hand-side
+           */
+          function DiffBlock(status, description, unchangedLines, lhsLines, rhsLines) {
             this.status = status;
+            this.description = description;
+            this.unchangedLines = unchangedLines;
+            this.lhsLines = lhsLines;
+            this.rhsLines = rhsLines;
 
+            this.hideLines = status == "omitted";
             this.hideStatus = status != "omitted";
-            this.hideLine = status == "omitted";
-            this.hideLeftLine = status == "added";
-            this.hideRightLine = status == "removed";
-
-            this.lhsStatus = status;
-            this.rhsStatus = status;
-            if (status == "changed") {
-              this.lhsStatus = "removed";
-              this.rhsStatus = "added";
-            } else if (status == "added") {
-              this.lhsStatus = "missing";
-            } else if (status == "removed") {
-              this.rhsStatus = "missing";
-            }
           }
 
-          function File(description, id, inlineDiffLines, sideBySideDiffLines) {
+          function File(description, id, diffBlocks) {
             this.description = description;
             this.id = id;
-            this.inlineDiffLines = inlineDiffLines;
-            this.sideBySideDiffLines = sideBySideDiffLines;
+            this.diffBlocks = diffBlocks;
             this.hidden = false;
           }
         }
