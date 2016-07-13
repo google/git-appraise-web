@@ -17,6 +17,7 @@ limitations under the License.
 <html>
   <head>
     <link rel="import" href="https://cdn.rawgit.com/download/polymer-cdn/1.2.3.2/lib/polymer/polymer.html">
+    <link rel="import" href="https://cdn.rawgit.com/download/polymer-cdn/1.2.3.2/lib/paper-button/paper-button.html">
     <link rel="import" href="https://cdn.rawgit.com/download/polymer-cdn/1.2.3.2/lib/paper-toolbar/paper-toolbar.html">
     <link rel="import" href="https://cdn.rawgit.com/download/polymer-cdn/1.2.3.2/lib/paper-radio-button/paper-radio-button.html">
 
@@ -37,9 +38,14 @@ limitations under the License.
             border-bottom-style: solid;
             border-bottom-width: thin;
           }
+          paper-button {
+            font-size: inherit;
+            height: inherit;
+          }
         </style>
-        <paper-toolbar on-tap="toggleHidden">
+        <paper-toolbar>
           <span class="title">Changes:</span>
+          <paper-button raised on-tap="toggleInline">{{inlineButtonTitle}}</paper-button>
         </paper-toolbar>
         <table class="commit-list" hidden$="{{hidden}}">
           <template is="dom-repeat" items="{{commits}}">
@@ -65,7 +71,7 @@ limitations under the License.
             </tr>
           </template>
         </table>
-        <unified-diff summary="{{diff}}" hidden$="{{hidden}}"></unified-diff>
+        <unified-diff summary="{{diff}}" inline="{{inline}}" hidden$="{{hidden}}"></unified-diff>
       </template>
       <script>
         function friendlyCommits(review, lhs, rhs, commits) {
@@ -128,10 +134,22 @@ limitations under the License.
             hidden: {
               type: Boolean,
               value: false
+            },
+            inline: {
+              type: Boolean,
+              value: false
+            },
+            inlineButtonTitle: {
+              type: String,
+              value: "Display Inline"
             }
           },
           toggleHidden: function() {
             this.hidden = !this.hidden;
+          },
+          toggleInline: function() {
+            this.inline = !this.inline;
+            this.inlineButtonTitle = this.inline? "Display Side-by-Side" : "Display Inline";
           },
           _updateDiff: function() {
             if (this.diff && this.diff.reviewCommits) {

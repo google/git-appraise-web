@@ -45,9 +45,15 @@ limitations under the License.
           }
 
           .line-number {
+            @apply(--layout-horizontal);
             width: 40px;
             background-color:#f4f4f4;
             font-family: monospace;
+
+            border-left: lightgrey;
+            border-left-style: solid;
+            border-left-width: thin;
+
             border-right: lightgrey;
             border-right-style: solid;
             border-right-width: thin;
@@ -57,7 +63,16 @@ limitations under the License.
             font-family: monospace;
             white-space: pre-wrap;
             word-break: break-all;
-            width: inherit;
+          }
+
+          .inline {
+            @apply(--layout-horizontal);
+            width: 100%;
+          }
+
+          .side-by-side {
+            @apply(--layout-horizontal);
+            width: 50%;
           }
 
           .omitted {
@@ -70,6 +85,10 @@ limitations under the License.
             border-top: lightgrey;
             border-top-style: solid;
             border-top-width: thin;
+          }
+
+          .missing {
+            background-color:#f4f4f4;
           }
 
           .unchanged {
@@ -93,20 +112,45 @@ limitations under the License.
               <div class="flexchild">{{details.description}}</div>
             </paper-toolbar>
             <div hidden$="{{hidden}}" class="diff-contents">
-              <template is="dom-repeat" items="{{details.diffLines}}">
-                <div class="omitted" hidden$="{{item.hideStatus}}">
-                  <div class$="flexchild">{{item.text}}</div>
-                </div>
-                <div class="diff-line" hidden$="{{item.hideLineNumbers}}">
-                  <div class="line-number">
-                    <div hidden$="{{item.hideLeftLineNumber}}">{{item.lhsNumber}}</div>
+              <div hidden$="{{hideInlineDiff}}">
+                <template is="dom-repeat" items="{{details.inlineDiffLines}}">
+                  <div class="omitted" hidden$="{{item.hideStatus}}">
+                    <div class$="flexchild">{{item.text}}</div>
                   </div>
-                  <div class="line-number">
-                    <div hidden$="{{item.hideRightLineNumber}}">{{item.rhsNumber}}</div>
+                  <div class="diff-line" hidden$="{{item.hideLineNumbers}}">
+                    <div class="line-number">
+                      <div hidden$="{{item.hideLeftLineNumber}}">{{item.lhsNumber}}</div>
+                    </div>
+                    <div class="line-number">
+                      <div hidden$="{{item.hideRightLineNumber}}">{{item.rhsNumber}}</div>
+                    </div>
+                    <div class="inline">
+                      <div class$="flexchild sourcecode {{item.status}}">{{item.text}}</div>
+                    </div>
                   </div>
-                  <div class$="flexchild sourcecode {{item.status}}">{{item.text}}</div>
-                </div>
-              </template>
+                </template>
+              </div>
+              <div hidden$="{{hideSideBySideDiff}}">
+                <template is="dom-repeat" items="{{details.sideBySideDiffLines}}">
+                  <div class="omitted" hidden$="{{item.hideStatus}}">
+                    <div class$="flexchild">{{item.lhsText}}</div>
+                  </div>
+                  <div class="diff-line" hidden$="{{item.hideLine}}">
+                    <div class="line-number">
+                      <div hidden$="{{item.hideLeftLine}}">{{item.lhsNumber}}</div>
+                    </div>
+                    <div class$="side-by-side {{item.lhsStatus}}">
+                      <div class="flexchild sourcecode" hidden$="{{item.hideLeftLine}}">{{item.lhsText}}</div>
+                    </div>
+                    <div class="line-number">
+                      <div hidden$="{{item.hideRightLine}}">{{item.rhsNumber}}</div>
+                    </div>
+                    <div class$="side-by-side {{item.rhsStatus}}">
+                      <div class="flexchild sourcecode" hidden$="{{item.hideRightLine}}">{{item.rhsText}}</div>
+                    </div>
+                  </div>
+                </template>
+              </div>
             </div>
           </paper-card>
         </paper-item>
@@ -118,6 +162,11 @@ limitations under the License.
             details: {
               type: Object,
             },
+            inline: {
+              type: Boolean,
+              value: false,
+              observer: '_changeDiffDisplay'
+            },
             hidden: {
               type: Boolean,
               value: false
@@ -125,6 +174,10 @@ limitations under the License.
           },
           toggleHidden: function() {
             this.hidden = !this.hidden;
+          },
+          _changeDiffDisplay: function() {
+            this.hideSideBySideDiff = this.inline;
+            this.hideInlineDiff = !this.inline;
           }
         });
       </script>
@@ -134,7 +187,7 @@ limitations under the License.
       <template>
         <paper-listbox>
           <template is="dom-repeat" items="{{files}}">
-            <file-diff details="{{item}}"></file-diff>
+            <file-diff details="{{item}}" inline="{{inline}}"></file-diff>
           </template>
         </paper-listbox>
       </template>
@@ -154,7 +207,9 @@ limitations under the License.
             var lhsFileName = fileNames[fileNames.length-2];
             var lhsNumber = 1;
             var rhsNumber = 1;
-            var lines = [];
+            var inlineDiffLines = [];
+            var sideBySideDiffLines = [];
+            var nextRhsLine = 0;
             for (var i in fileLines) {
               var text = fileLines[i];
               if (text.startsWith("--- ")) {
@@ -169,28 +224,49 @@ limitations under the License.
                 lhsNumber = nextLhsNumber;
                 rhsNumber = parseInt(toLinePart);
                 if (omittedCount > 0) {
-                  lines.push(
-                    new DiffLine(
+                  inlineDiffLines.push(
+                    new InlineDiffLine(
                       lhsNumber,
                       rhsNumber,
                       "omitted",
                       "Skipped " + omittedCount + " unchanged lines"));
+                  sideBySideDiffLines.push(
+                    new SideBySideDiffLine(
+                      lhsNumber,
+                      rhsNumber,
+                      "Skipped " + omittedCount + " unchanged lines",
+                      "",
+                      "omitted"));
                 }
               } else if (text.startsWith("-")) {
-                lines.push(new DiffLine(lhsNumber, rhsNumber, "removed", text.substring(1)));
+                inlineDiffLines.push(new InlineDiffLine(lhsNumber, rhsNumber, "removed", text.substring(1)));
+                sideBySideDiffLines.push(new SideBySideDiffLine(lhsNumber, rhsNumber, text.substring(1), "", "removed"));
                 lhsNumber++;
               } else if (text.startsWith("+")) {
-                lines.push(new DiffLine(lhsNumber, rhsNumber, "added", text.substring(1)));
+                inlineDiffLines.push(new InlineDiffLine(lhsNumber, rhsNumber, "added", text.substring(1)));
+                if (nextRhsLine < sideBySideDiffLines.length) {
+                  var oldLine = sideBySideDiffLines[nextRhsLine];
+                  var newLine = new SideBySideDiffLine(
+                    oldLine.lhsNumber, rhsNumber, oldLine.lhsText, text.substring(1), "changed");
+                  sideBySideDiffLines[nextRhsLine] = newLine;
+                } else {
+                  sideBySideDiffLines.push(new SideBySideDiffLine(lhsNumber, rhsNumber, "", text.substring(1), "added"));
+                }
                 rhsNumber++;
+                nextRhsLine++;
               } else if (text.startsWith(" ")) {
-                lines.push(new DiffLine(lhsNumber, rhsNumber, "unchanged", text.substring(1)));
+                var status = "unchanged";
+                var lineText = text.substring(1);
+                inlineDiffLines.push(new InlineDiffLine(lhsNumber, rhsNumber, status, lineText));
+                sideBySideDiffLines.push(new SideBySideDiffLine(lhsNumber, rhsNumber, lineText, lineText, status));
                 lhsNumber++;
                 rhsNumber++;
+                nextRhsLine = sideBySideDiffLines.length;
               }
             }
             var description = getFileDescription(lhsFileName, rhsFileName);
             var id = "file" + files.length;
-            return new File(description, id, lines);
+            return new File(description, id, inlineDiffLines, sideBySideDiffLines);
           }
 
           function getFileDescription(lhsFileName, rhsFileName) {
@@ -209,7 +285,7 @@ limitations under the License.
             }
           }
 
-          function DiffLine(lhsNumber, rhsNumber, status, text) {
+          function InlineDiffLine(lhsNumber, rhsNumber, status, text) {
             this.lhsNumber = lhsNumber;
             this.rhsNumber = rhsNumber;
             this.status = status;
@@ -221,10 +297,35 @@ limitations under the License.
             this.hideRightLineNumber = status == "omitted" || status == "removed";
           }
 
-          function File(description, id, diffLines) {
+          function SideBySideDiffLine(lhsNumber, rhsNumber, lhsText, rhsText, status) {
+            this.lhsNumber = lhsNumber;
+            this.rhsNumber = rhsNumber;
+            this.lhsText = lhsText;
+            this.rhsText = rhsText;
+            this.status = status;
+
+            this.hideStatus = status != "omitted";
+            this.hideLine = status == "omitted";
+            this.hideLeftLine = status == "added";
+            this.hideRightLine = status == "removed";
+
+            this.lhsStatus = status;
+            this.rhsStatus = status;
+            if (status == "changed") {
+              this.lhsStatus = "removed";
+              this.rhsStatus = "added";
+            } else if (status == "added") {
+              this.lhsStatus = "missing";
+            } else if (status == "removed") {
+              this.rhsStatus = "missing";
+            }
+          }
+
+          function File(description, id, inlineDiffLines, sideBySideDiffLines) {
             this.description = description;
             this.id = id;
-            this.diffLines = diffLines;
+            this.inlineDiffLines = inlineDiffLines;
+            this.sideBySideDiffLines = sideBySideDiffLines;
             this.hidden = false;
           }
         }
@@ -236,6 +337,10 @@ limitations under the License.
               type: Object,
               observer: '_parseDiff'
             },
+            inline: {
+              type: Boolean,
+              value: false
+            }
           },
           _parseDiff: function() {
             if (this.summary &&
