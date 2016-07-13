@@ -7,7 +7,7 @@ test:	vet
 vet:	fmt
 	go vet ./...
 
-fmt:
+fmt:	assets
 	gofmt -w ./
 
 assets: FORCE
