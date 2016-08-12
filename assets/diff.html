@@ -145,53 +145,37 @@ limitations under the License.
                     <div class$="flexchild">{{item.description}}</div>
                   </div>
                   <div class="side-by-side" hidden$="{{item.hideLines}}">
-                    <div class="line-number">
-                      <template is="dom-repeat" items="{{item.unchangedLines}}">
-                        <div>{{item.lhsNumber}}</div>
-                      </template>
-                    </div>
                     <div class="one-side">
                       <template is="dom-repeat" items="{{item.unchangedLines}}">
-                        <div class="flexchild diff-line">
-                          <div class="flexchild sourcecode unchanged">{{item.text}}</div>
+                        <div class="diff-line">
+                          <div class="line-number">{{item.lhsNumber}}</div>
+                          <div class="sourcecode unchanged">{{item.text}}</div>
                         </div>
                       </template>
                     </div>
-                    <div class="line-number">
-                      <template is="dom-repeat" items="{{item.unchangedLines}}">
-                        <div>{{item.rhsNumber}}</div>
-                      </template>
-                    </div>
                     <div class="one-side">
                       <template is="dom-repeat" items="{{item.unchangedLines}}">
-                        <div class="flexchild diff-line">
-                          <div class="flexchild sourcecode unchanged">{{item.text}}</div>
+                        <div class="diff-line">
+                          <div class="line-number">{{item.rhsNumber}}</div>
+                          <div class="sourcecode unchanged">{{item.text}}</div>
                         </div>
                       </template>
                     </div>
                   </div>
                   <div class="side-by-side" hidden$="{{item.hideLines}}">
-                    <div class="line-number">
-                      <template is="dom-repeat" items="{{item.lhsLines}}">
-                        <div>{{item.number}}</div>
-                      </template>
-                    </div>
                     <div class="one-side">
                       <template is="dom-repeat" items="{{item.lhsLines}}">
-                        <div class="flexchild diff-line">
-                          <div class="flexchild sourcecode removed">{{item.text}}</div>
+                        <div class="diff-line">
+                          <div class="line-number">{{item.number}}</div>
+                          <div class="sourcecode removed">{{item.text}}</div>
                         </div>
-                      </template>
-                    </div>
-                    <div class="line-number">
-                      <template is="dom-repeat" items="{{item.rhsLines}}">
-                        <div>{{item.number}}</div>
                       </template>
                     </div>
                     <div class="one-side" hidden$="{{item.hideLines}}">
                       <template is="dom-repeat" items="{{item.rhsLines}}">
-                        <div class="flexchild diff-line">
-                          <div class="flexchild sourcecode added">{{item.text}}</div>
+                        <div class="diff-line">
+                          <div class="line-number">{{item.number}}</div>
+                          <div class="sourcecode added">{{item.text}}</div>
                         </div>
                       </template>
                     </div>
