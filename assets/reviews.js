@@ -152,32 +152,36 @@ gitAppraiseWeb.controller("getReview", function($scope,$http,$location) {
       var commitPaths = commentLocations[commit];
       for (var path in commitPaths) {
         var pathLines = commitPaths[path];
-        $http.get("/api/repo_contents?repo=" + repo + "&commit=" + commit + "&file=" + path).success(
-          function(response) {
-            contentLines = response.split("\n");
-            for (var line in pathLines) {
-              if (line > 0 && line <= contentLines.length) {
-                var startingLine = Math.max(0, line - 5);
-                var endingLine = Math.max(0, line - 1);
-                var snippetLines = [];
-                for (var i = startingLine; i <= endingLine; i++) {
-                  snippetLines.push(new SnippetLine(i+1, contentLines[i]));
-                }
-                var snippet = new Snippet(commit, path, snippetLines);
-                for (var h in pathLines[line]) {
-                  var hash = pathLines[line][h];
-                  for (var i in commentThreads) {
-                    var commentThread = commentThreads[i];
-                    if (commentThread.hash == hash) {
-                      commentThread.snippet = snippet;
-                    }
-                  }
-                }
-              }
-            }
-          });
+        var reader = snippetReader(path, commit, pathLines, commentThreads);
+        $http.get("/api/repo_contents?repo=" + repo + "&commit=" + commit + "&file=" + path).success(reader);
       }
     }
+  }
+
+  function snippetReader(path, commit, pathLines, commentThreads) {
+    return function(response) {
+      var contentLines = response.split("\n");
+      for (var line in pathLines) {
+        if (line > 0 && line <= contentLines.length) {
+          var startingLine = Math.max(0, line - 5);
+          var endingLine = Math.max(0, line - 1);
+          var snippetLines = [];
+          for (var i = startingLine; i <= endingLine; i++) {
+            snippetLines.push(new SnippetLine(i+1, contentLines[i]));
+          }
+          var snippet = new Snippet(commit, path, snippetLines);
+          for (var h in pathLines[line]) {
+            var hash = pathLines[line][h];
+            for (var i in commentThreads) {
+              var commentThread = commentThreads[i];
+              if (commentThread.hash == hash) {
+                commentThread.snippet = snippet;
+              }
+            }
+          }
+        }
+      }
+    };
   }
 
   function SnippetLine(lineNumber, contents) {
