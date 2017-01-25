@@ -84,7 +84,7 @@ func (details *RepoDetails) update() error {
 	var openReviews []review.Summary
 	var closedReviews []review.Summary
 	for _, review := range allReviews {
-		if review.Submitted {
+		if review.Submitted || review.Request.TargetRef == "" {
 			closedReviews = append(closedReviews, review)
 		} else {
 			openReviews = append(openReviews, review)
