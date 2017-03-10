@@ -22,6 +22,8 @@ limitations under the License.
     <link rel="import" href="https://cdn.rawgit.com/download/polymer-cdn/1.2.3.2/lib/paper-radio-button/paper-radio-button.html">
 
     <link rel="import" href="/static/diff.html">
+
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
   </head>
   <body>
     <dom-module id="commits-list">
@@ -44,6 +46,7 @@ limitations under the License.
           }
         </style>
         <paper-toolbar>
+          <i class="material-icons" on-tap="toggleHidden">{{toggleIcon}}</i>
           <span class="title">Changes:</span>
           <paper-button raised on-tap="toggleInline">{{inlineButtonTitle}}</paper-button>
         </paper-toolbar>
@@ -131,6 +134,10 @@ limitations under the License.
               type: Array,
               value: []
             },
+            toggleIcon: {
+              type: String,
+              value: "indeterminate_check_box"
+            },
             hidden: {
               type: Boolean,
               value: false
@@ -146,6 +153,11 @@ limitations under the License.
           },
           toggleHidden: function() {
             this.hidden = !this.hidden;
+            if (this.hidden) {
+              this.toggleIcon = "add_box"
+            } else {
+              this.toggleIcon = "indeterminate_check_box"
+            }
           },
           toggleInline: function() {
             this.inline = !this.inline;

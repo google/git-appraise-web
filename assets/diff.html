@@ -21,6 +21,8 @@ limitations under the License.
     <link rel="import" href="https://cdn.rawgit.com/download/polymer-cdn/1.2.3.2/lib/paper-item/paper-item.html">
     <link rel="import" href="https://cdn.rawgit.com/download/polymer-cdn/1.2.3.2/lib/paper-listbox/paper-listbox.html">
     <link rel="import" href="https://cdn.rawgit.com/download/polymer-cdn/1.2.3.2/lib/paper-toolbar/paper-toolbar.html">
+
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
   </head>
   <body>
     <dom-module id="file-diff">
@@ -107,7 +109,8 @@ limitations under the License.
         </style>
         <paper-item>
           <paper-card>
-            <paper-toolbar on-tap="toggleHidden">
+            <paper-toolbar>
+              <i class="material-icons" on-tap="toggleHidden">{{toggleIcon}}</i>
               <div class="flexchild">{{details.description}}</div>
             </paper-toolbar>
             <div hidden$="{{hidden}}" class="diff-contents">
@@ -198,6 +201,10 @@ limitations under the License.
               value: false,
               observer: '_changeDiffDisplay'
             },
+            toggleIcon: {
+              type: String,
+              value: "indeterminate_check_box"
+            },
             hidden: {
               type: Boolean,
               value: false
@@ -205,6 +212,11 @@ limitations under the License.
           },
           toggleHidden: function() {
             this.hidden = !this.hidden;
+            if (this.hidden) {
+              this.toggleIcon = "add_box"
+            } else {
+              this.toggleIcon = "indeterminate_check_box"
+            }
           },
           _changeDiffDisplay: function() {
             this.hideSideBySideDiff = this.inline;

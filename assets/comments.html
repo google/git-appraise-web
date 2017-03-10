@@ -24,6 +24,8 @@ limitations under the License.
 
     <link rel="import" href="/static/markdown.html">
     <link rel="import" href="/static/timestamp.html">
+
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
   </head>
   <body>
     <dom-module id="comment-thread">
@@ -94,7 +96,8 @@ limitations under the License.
         </style>
         <paper-item>
           <paper-card>
-            <paper-toolbar class$="{{status}}" on-tap="toggleHidden">
+            <paper-toolbar class$="{{status}}">
+              <i class="material-icons" on-tap="toggleHidden">{{toggleIcon}}</i>
               <friendly-timestamp timestamp="{{thread.comment.timestamp}}"></friendly-timestamp>
               <div class="flexchild author">{{thread.comment.author}}</div>
               <div>{{status}}</div>
@@ -137,6 +140,10 @@ limitations under the License.
               type: Object,
               observer: '_displayThreads'
             },
+            toggleIcon: {
+              type: String,
+              value: "indeterminate_check_box"
+            },
             hidden: {
               type: Boolean,
               value: false
@@ -168,6 +175,11 @@ limitations under the License.
           },
           toggleHidden: function() {
             this.hidden = !this.hidden;
+            if (this.hidden) {
+              this.toggleIcon = "add_box"
+            } else {
+              this.toggleIcon = "indeterminate_check_box"
+            }
           }
         });
       </script>
