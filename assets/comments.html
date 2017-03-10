@@ -161,13 +161,17 @@ limitations under the License.
               value: 'fyi'
             }
           },
+          _hasSnippet: function() {
+            if (this.inline) { return false; }
+            return ('snippet' in this.thread);
+          },
           _displayThreads: function() {
             if (this.thread &&
                 ((typeof this.thread) == 'object') &&
                 this.thread.comment &&
                 ((typeof this.thread.comment) == 'object')) {
               this.status = getCommentThreadStatus(this.thread);
-              this.hideSnippet = this.inline || !('snippet' in this.thread);
+              this.hideSnippet = this.hidden || !this._hasSnippet();
               if (!('description' in this.thread.comment)) {
                 this.thread.comment.description = '';
               }
@@ -175,6 +179,7 @@ limitations under the License.
           },
           toggleHidden: function() {
             this.hidden = !this.hidden;
+            this.hideSnippet = this.hidden || !this._hasSnippet();
             if (this.hidden) {
               this.toggleIcon = "add_box"
             } else {
