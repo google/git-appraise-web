@@ -21,6 +21,8 @@ limitations under the License.
     <link rel="import" href="https://cdn.rawgit.com/download/polymer-cdn/1.2.3.2/lib/paper-item/paper-item.html">
     <link rel="import" href="https://cdn.rawgit.com/download/polymer-cdn/1.2.3.2/lib/paper-listbox/paper-listbox.html">
     <link rel="import" href="https://cdn.rawgit.com/download/polymer-cdn/1.2.3.2/lib/paper-toolbar/paper-toolbar.html">
+
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
   </head>
   <body>
     <dom-module id="file-diff">
@@ -40,24 +42,35 @@ limitations under the License.
 
           .diff-line {
             @apply(--layout-horizontal);
-            width: inherit;
+            width: 100%;
             line-height: normal;
           }
 
           .line-number {
+            @apply(--layout-vertical);
             width: 40px;
             background-color:#f4f4f4;
             font-family: monospace;
+
+            border-left: lightgrey;
+            border-left-style: solid;
+            border-left-width: thin;
+
             border-right: lightgrey;
             border-right-style: solid;
             border-right-width: thin;
           }
 
           .sourcecode {
+            @apply(--layout-horizontal);
             font-family: monospace;
             white-space: pre-wrap;
             word-break: break-all;
-            width: inherit;
+            width: 100%;
+          }
+
+          .side-by-side {
+            @apply(--layout-horizontal);
           }
 
           .omitted {
@@ -72,7 +85,14 @@ limitations under the License.
             border-top-width: thin;
           }
 
+          .one-side {
+            @apply(--layout-vertical);
+            background-color:#f4f4f4;
+            width: 50%;
+          }
+
           .unchanged {
+            background-color:#ffffff;
           }
 
           .added {
@@ -89,24 +109,82 @@ limitations under the License.
         </style>
         <paper-item>
           <paper-card>
-            <paper-toolbar on-tap="toggleHidden">
+            <paper-toolbar>
+              <i class="material-icons" on-tap="toggleHidden">{{toggleIcon}}</i>
               <div class="flexchild">{{details.description}}</div>
             </paper-toolbar>
             <div hidden$="{{hidden}}" class="diff-contents">
-              <template is="dom-repeat" items="{{details.diffLines}}">
-                <div class="omitted" hidden$="{{item.hideStatus}}">
-                  <div class$="flexchild">{{item.text}}</div>
-                </div>
-                <div class="diff-line" hidden$="{{item.hideLineNumbers}}">
-                  <div class="line-number">
-                    <div hidden$="{{item.hideLeftLineNumber}}">{{item.lhsNumber}}</div>
+              <div hidden$="{{hideInlineDiff}}">
+                <template is="dom-repeat" items="{{details.diffBlocks}}">
+                  <div class="omitted" hidden$="{{item.hideStatus}}">
+                    <div class$="flexchild">{{item.description}}</div>
                   </div>
-                  <div class="line-number">
-                    <div hidden$="{{item.hideRightLineNumber}}">{{item.rhsNumber}}</div>
+                  <template is="dom-repeat" items="{{item.unchangedLines}}">
+                    <div class="diff-line" hidden$="{{item.hideLines}}">
+                      <div class="line-number">{{item.lhsNumber}}</div>
+                      <div class="line-number">{{item.rhsNumber}}</div>
+                      <div class="flexchild sourcecode unchanged">{{item.text}}</div>
+                    </div>
+                  </template>
+                  <template is="dom-repeat" items="{{item.lhsLines}}">
+                    <div class="diff-line" hidden$="{{item.hideLines}}">
+                      <div class="line-number">{{item.number}}</div>
+                      <div class="line-number"></div>
+                      <div class="flexchild sourcecode removed">{{item.text}}</div>
+                    </div>
+                  </template>
+                  <template is="dom-repeat" items="{{item.rhsLines}}">
+                    <div class="diff-line" hidden$="{{item.hideLines}}">
+                      <div class="line-number"></div>
+                      <div class="line-number">{{item.number}}</div>
+                      <div class="flexchild sourcecode added">{{item.text}}</div>
+                    </div>
+                  </template>
+                </template>
+              </div>
+              <div hidden$="{{hideSideBySideDiff}}">
+                <template is="dom-repeat" items="{{details.diffBlocks}}">
+                  <div class="omitted" hidden$="{{item.hideStatus}}">
+                    <div class$="flexchild">{{item.description}}</div>
                   </div>
-                  <div class$="flexchild sourcecode {{item.status}}">{{item.text}}</div>
-                </div>
-              </template>
+                  <div class="side-by-side" hidden$="{{item.hideLines}}">
+                    <div class="one-side">
+                      <template is="dom-repeat" items="{{item.unchangedLines}}">
+                        <div class="diff-line">
+                          <div class="line-number">{{item.lhsNumber}}</div>
+                          <div class="sourcecode unchanged">{{item.text}}</div>
+                        </div>
+                      </template>
+                    </div>
+                    <div class="one-side">
+                      <template is="dom-repeat" items="{{item.unchangedLines}}">
+                        <div class="diff-line">
+                          <div class="line-number">{{item.rhsNumber}}</div>
+                          <div class="sourcecode unchanged">{{item.text}}</div>
+                        </div>
+                      </template>
+                    </div>
+                  </div>
+                  <div class="side-by-side" hidden$="{{item.hideLines}}">
+                    <div class="one-side">
+                      <template is="dom-repeat" items="{{item.lhsLines}}">
+                        <div class="diff-line">
+                          <div class="line-number">{{item.number}}</div>
+                          <div class="sourcecode removed">{{item.text}}</div>
+                        </div>
+                      </template>
+                    </div>
+                    <div class="one-side" hidden$="{{item.hideLines}}">
+                      <template is="dom-repeat" items="{{item.rhsLines}}">
+                        <div class="diff-line">
+                          <div class="line-number">{{item.number}}</div>
+                          <div class="sourcecode added">{{item.text}}</div>
+                        </div>
+                      </template>
+                    </div>
+                  </div>
+                </template>
+              </div>
             </div>
           </paper-card>
         </paper-item>
@@ -118,6 +196,15 @@ limitations under the License.
             details: {
               type: Object,
             },
+            inline: {
+              type: Boolean,
+              value: false,
+              observer: '_changeDiffDisplay'
+            },
+            toggleIcon: {
+              type: String,
+              value: "indeterminate_check_box"
+            },
             hidden: {
               type: Boolean,
               value: false
@@ -125,16 +212,25 @@ limitations under the License.
           },
           toggleHidden: function() {
             this.hidden = !this.hidden;
+            if (this.hidden) {
+              this.toggleIcon = "add_box"
+            } else {
+              this.toggleIcon = "indeterminate_check_box"
+            }
+          },
+          _changeDiffDisplay: function() {
+            this.hideSideBySideDiff = this.inline;
+            this.hideInlineDiff = !this.inline;
           }
         });
       </script>
     </dom-module>
 
-    <dom-module id="inline-diff">
+    <dom-module id="unified-diff">
       <template>
         <paper-listbox>
           <template is="dom-repeat" items="{{files}}">
-            <file-diff details="{{item}}"></file-diff>
+            <file-diff details="{{item}}" inline="{{inline}}"></file-diff>
           </template>
         </paper-listbox>
       </template>
@@ -154,7 +250,8 @@ limitations under the License.
             var lhsFileName = fileNames[fileNames.length-2];
             var lhsNumber = 1;
             var rhsNumber = 1;
-            var lines = [];
+            var diffBlocks = [];
+            var currBlock = null;
             for (var i in fileLines) {
               var text = fileLines[i];
               if (text.startsWith("--- ")) {
@@ -169,28 +266,38 @@ limitations under the License.
                 lhsNumber = nextLhsNumber;
                 rhsNumber = parseInt(toLinePart);
                 if (omittedCount > 0) {
-                  lines.push(
-                    new DiffLine(
-                      lhsNumber,
-                      rhsNumber,
-                      "omitted",
-                      "Skipped " + omittedCount + " unchanged lines"));
+                  diffBlocks.push(new DiffBlock(
+                    "omitted", "Skipped " + omittedCount + " unchanged lines", [], [], []));
+                  currBlock = null;
                 }
               } else if (text.startsWith("-")) {
-                lines.push(new DiffLine(lhsNumber, rhsNumber, "removed", text.substring(1)));
+                if ((currBlock == null) || (currBlock.status != "changed")) {
+                  currBlock = new DiffBlock("changed", "", [], [], []);
+                  diffBlocks.push(currBlock);
+                }
+                currBlock.lhsLines.push(new DiffLine(lhsNumber, text.substring(1)));
                 lhsNumber++;
               } else if (text.startsWith("+")) {
-                lines.push(new DiffLine(lhsNumber, rhsNumber, "added", text.substring(1)));
+                if ((currBlock == null) || (currBlock.status != "changed")) {
+                  currBlock = new DiffBlock("changed", "", [], [], []);
+                  diffBlocks.push(currBlock);
+                }
+                currBlock.rhsLines.push(new DiffLine(rhsNumber, text.substring(1)));
                 rhsNumber++;
               } else if (text.startsWith(" ")) {
-                lines.push(new DiffLine(lhsNumber, rhsNumber, "unchanged", text.substring(1)));
+                if ((currBlock == null) || (currBlock.status != "unchanged")) {
+                  currBlock = new DiffBlock("unchanged", "", [], [], []);
+                  diffBlocks.push(currBlock);
+                }
+                var lineText = text.substring(1);
+                currBlock.unchangedLines.push(new UnchangedLine(lhsNumber, rhsNumber, lineText));
                 lhsNumber++;
                 rhsNumber++;
               }
             }
             var description = getFileDescription(lhsFileName, rhsFileName);
             var id = "file" + files.length;
-            return new File(description, id, lines);
+            return new File(description, id, diffBlocks);
           }
 
           function getFileDescription(lhsFileName, rhsFileName) {
@@ -209,33 +316,52 @@ limitations under the License.
             }
           }
 
-          function DiffLine(lhsNumber, rhsNumber, status, text) {
+          function UnchangedLine(lhsNumber, rhsNumber, text) {
             this.lhsNumber = lhsNumber;
             this.rhsNumber = rhsNumber;
-            this.status = status;
             this.text = text;
-
-            this.hideStatus = status != "omitted";
-            this.hideLineNumbers = status == "omitted";
-            this.hideLeftLineNumber = status == "omitted" || status == "added";
-            this.hideRightLineNumber = status == "omitted" || status == "removed";
           }
 
-          function File(description, id, diffLines) {
+          function DiffLine(number, text) {
+            this.number = number;
+            this.text = text;
+          }
+
+          /**
+           * @param status one of the values "omitted", "changed", or "unchanged"
+           * @param lhsLines list of DiffLine values for the left-hand-side
+           * @param rhsLines list of DiffLine values for the left-hand-side
+           */
+          function DiffBlock(status, description, unchangedLines, lhsLines, rhsLines) {
+            this.status = status;
+            this.description = description;
+            this.unchangedLines = unchangedLines;
+            this.lhsLines = lhsLines;
+            this.rhsLines = rhsLines;
+
+            this.hideLines = status == "omitted";
+            this.hideStatus = status != "omitted";
+          }
+
+          function File(description, id, diffBlocks) {
             this.description = description;
             this.id = id;
-            this.diffLines = diffLines;
+            this.diffBlocks = diffBlocks;
             this.hidden = false;
           }
         }
 
         Polymer({
-          is: 'inline-diff',
+          is: 'unified-diff',
           properties: {
             summary: {
               type: Object,
               observer: '_parseDiff'
             },
+            inline: {
+              type: Boolean,
+              value: false
+            }
           },
           _parseDiff: function() {
             if (this.summary &&

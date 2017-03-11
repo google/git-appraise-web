@@ -46,6 +46,10 @@ paper-toolbar.paper-toolbar-0 {
   height: initial;
 }
 
+.toolbar-tools.paper-toolbar{
+  padding: 0;
+}
+
 .toolbar-tools.paper-toolbar .title {
   font-size: medium;
 }

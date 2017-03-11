@@ -21,6 +21,8 @@ limitations under the License.
     <link rel="import" href="https://cdn.rawgit.com/download/polymer-cdn/1.2.3.2/lib/paper-toolbar/paper-toolbar.html">
 
     <link rel="import" href="/static/timestamp.html">
+
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
   </head>
   <body>
     <dom-module id="continuous-integration">
@@ -35,7 +37,8 @@ limitations under the License.
           }
         </style>
         <paper-card>
-          <paper-toolbar on-tap="toggleHidden">
+          <paper-toolbar>
+            <i class="material-icons" on-tap="toggleHidden">{{toggleIcon}}</i>
             <span class="title">Continuous Integration:</span>
           </paper-toolbar>
           <table hidden$="{{hidden}}">
@@ -60,6 +63,10 @@ limitations under the License.
               type: Array,
               observer: '_canonicalReports'
             },
+            toggleIcon: {
+              type: String,
+              value: "indeterminate_check_box"
+            },
             hidden: {
               type: Boolean,
               value: false
@@ -76,6 +83,11 @@ limitations under the License.
           },
           toggleHidden: function() {
             this.hidden = !this.hidden;
+            if (this.hidden) {
+              this.toggleIcon = "add_box"
+            } else {
+              this.toggleIcon = "indeterminate_check_box"
+            }
           }
         });
       </script>
