@@ -5,3 +5,5 @@
 {"timestamp":"1489194060","url":"https://travis-ci.org/google/git-appraise-web/builds/209956960","agent":"continuous-integration/travis-ci/pr"}
 
 {"timestamp":"1489194090","url":"https://travis-ci.org/google/git-appraise-web/builds/209956960","status":"success","agent":"continuous-integration/travis-ci/pr"}
+
+{"timestamp":"1489194089","url":"https://travis-ci.org/google/git-appraise-web/builds/209956951","status":"success","agent":"continuous-integration/travis-ci/push"}
