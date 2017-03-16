@@ -15,14 +15,7 @@
 # Example config file for running under Google App Engine.
 
 # To deploy this module to your app, run the following command:
-#   gcloud preview app deploy config/app.yaml
+#   gcloud app deploy ./app.yaml
 
 runtime: custom
-vm: true
-
-# If you want to lock down access to your review lists to members of
-# your project, then uncomment the following 4 lines:
-#handlers:
-#- url: /.*
-#  script: main.application
-#  login: admin
+env: flex
