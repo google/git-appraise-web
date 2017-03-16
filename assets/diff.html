@@ -243,6 +243,36 @@ limitations under the License.
           }
           return files;
 
+          function collapseUnchangedBlocks(diffBlocks) {
+            var collapsedBlocks = [];
+            var blockCount = diffBlocks.length;
+            console.log("Collapsing " + blockCount + " diff blocks");
+
+            for (var i in diffBlocks) {
+              var currBlock = diffBlocks[i];
+              var hasPreviousBlock = i > 0;
+              var hasNextBlock = i < (blockCount - 1);
+
+              if (currBlock.unchangedLines.length <= 10) {
+                collapsedBlocks.push(currBlock);
+              } else {
+                var unchangedCount = currBlock.unchangedLines.length;
+                var startOfBlock = currBlock.unchangedLines.slice(0, 5);
+                var endOfBlock = currBlock.unchangedLines.slice(unchangedCount - 5, unchangedCount);
+                var skipCount = hasNextBlock?unchangedCount-5:unchangedCount;
+                if (hasPreviousBlock) {
+                  collapsedBlocks.push(new DiffBlock("unchanged", "", startOfBlock, [], []));
+                  skipCount -= 5;
+                }
+                collapsedBlocks.push(new DiffBlock("omitted", "Omitting " + skipCount + " lines", [], [], []));
+                if (hasNextBlock) {
+                  collapsedBlocks.push(new DiffBlock("unchanged", "", endOfBlock, [], []));
+                }
+              }
+            }
+            return collapsedBlocks;
+          }
+
           function parseFileDiff(fileDiff) {
             var fileLines = fileDiff.split("\n");
             var fileNames = fileLines[0].split(" ");
@@ -295,9 +325,10 @@ limitations under the License.
                 rhsNumber++;
               }
             }
+            
             var description = getFileDescription(lhsFileName, rhsFileName);
             var id = "file" + files.length;
-            return new File(description, id, diffBlocks);
+            return new File(description, id, collapseUnchangedBlocks(diffBlocks));
           }
 
           function getFileDescription(lhsFileName, rhsFileName) {

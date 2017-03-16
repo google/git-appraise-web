@@ -124,7 +124,7 @@ func NewDiffSummary(reviewDetails *review.Review, lhs, rhs string) (*DiffSummary
 	if _, ok := commitsMap[rhs]; !ok {
 		rhs = head
 	}
-	diff, err := reviewDetails.Repo.Diff(lhs, rhs)
+	diff, err := reviewDetails.Repo.Diff(lhs, rhs, "-U1000000")
 	if err != nil {
 		return nil, err
 	}
