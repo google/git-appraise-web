@@ -16,15 +16,26 @@ Building requires the Go tools and GNU Make. Running the built binary requires t
 
 ## Building the source code
 
-First checkout the code from the git repo:
+Assuming you have the [Go tools installed](https://golang.org/doc/install), run
+the following command:
 
-    git clone git@github.com:google/git-appraise-web.git
+    go get github.com/google/git-appraise-web/git-appraise-web
+
+### Manual steps
+
+Assuming you have not run the above command, first checkout the code from the git repo:
+
+    mkdir -p ${GOPATH}/src/github.com/google
+    git clone https://github.com/google/git-appraise-web.git
 
 Build the binary:
 
+    cd ${GOPATH}/src/github.com/google/git-appraise-web
     make
 
-And then launch it:
+## Running the application
+
+Binary is placed into `${GOPATH}/bin`:
 
     ${GOPATH}/bin/git-appraise-web
 
