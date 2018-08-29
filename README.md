@@ -26,6 +26,7 @@ the following command:
 Assuming you have not run the above command, first checkout the code from the git repo:
 
     mkdir -p ${GOPATH}/src/github.com/google
+    cd ${GOPATH}/src/github.com/google
     git clone https://github.com/google/git-appraise-web.git
 
 Build the binary:
