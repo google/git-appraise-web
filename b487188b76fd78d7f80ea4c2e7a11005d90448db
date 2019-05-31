@@ -5,3 +5,5 @@
 {"timestamp":"1535559961","author":"philips","description":"No problem. I caught it because the new go 1.11 modules stuff breaks the old `go get github.com/google/git-appraise-web` workflow... :("}
 
 {"timestamp":"1535580799","author":"ojarjur","description":"@philips Well that's certainly not good.\r\n\r\nCan you share the error you are seeing? I've just tried `go get github.com/google/git-appraise-web/git-appraise-web` after installing go 1.11, but wasn't able to reproduce an issue."}
+
+{"timestamp":"1535583282","author":"philips","description":"```\r\n$ env | grep GO111\r\nGO111MODULE=on\r\n\r\n$ go get github.com/google/git-appraise-web/git-appraise-web\r\ngo: cannot find main module; see 'go help modules'\r\n```"}
