@@ -1,3 +1,5 @@
 {"timestamp":"1535501033","author":"ojarjur","description":"Thanks for catching and fixing this!"}
 
 {"timestamp":"1535501118","author":"ojarjur@google.com","location":{"commit":"b487188b76fd78d7f80ea4c2e7a11005d90448db"},"resolved":true}
+
+{"timestamp":"1535559961","author":"philips","description":"No problem. I caught it because the new go 1.11 modules stuff breaks the old `go get github.com/google/git-appraise-web` workflow... :("}
