@@ -3,3 +3,5 @@
 {"timestamp":"1535501118","author":"ojarjur@google.com","location":{"commit":"b487188b76fd78d7f80ea4c2e7a11005d90448db"},"resolved":true}
 
 {"timestamp":"1535559961","author":"philips","description":"No problem. I caught it because the new go 1.11 modules stuff breaks the old `go get github.com/google/git-appraise-web` workflow... :("}
+
+{"timestamp":"1535580799","author":"ojarjur","description":"@philips Well that's certainly not good.\r\n\r\nCan you share the error you are seeing? I've just tried `go get github.com/google/git-appraise-web/git-appraise-web` after installing go 1.11, but wasn't able to reproduce an issue."}
