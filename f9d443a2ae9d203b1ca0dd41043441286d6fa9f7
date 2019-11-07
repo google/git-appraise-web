@@ -13,3 +13,5 @@
 {"timestamp":"1573168581","url":"https://travis-ci.org/google/git-appraise-web/builds/608995017?utm_source=github_status\u0026utm_medium=notification","agent":"continuous-integration/travis-ci/pr"}
 
 {"timestamp":"1573168573","url":"https://travis-ci.org/google/git-appraise-web/builds/608994996?utm_source=github_status\u0026utm_medium=notification","agent":"continuous-integration/travis-ci/push"}
+
+{"timestamp":"1573168585","url":"https://travis-ci.org/google/git-appraise-web/builds/608994928?utm_source=github_status\u0026utm_medium=notification","status":"failure","agent":"continuous-integration/travis-ci/push"}
