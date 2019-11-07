@@ -24,10 +24,13 @@ RUN apt-get update && apt-get upgrade -y && \
     mkdir -p /var/log/app_engine/custom_logs
 
 ADD supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+ADD clone.sh /opt/bin/clone.sh
 ADD pull.sh /opt/bin/pull.sh
 
+RUN chmod u+x /opt/bin/clone.sh
 RUN chmod u+x /opt/bin/pull.sh
 
+ENV CLONE_REPOS="https://github.com/google/git-appraise https://github.com/google/git-appraise-web"
 RUN wget -O /opt/go1.6.2.linux-amd64.tar.gz \
       https://storage.googleapis.com/golang/go1.6.2.linux-amd64.tar.gz && \
     tar -C /usr/local -xzf /opt/go1.6.2.linux-amd64.tar.gz && \
@@ -35,6 +38,7 @@ RUN wget -O /opt/go1.6.2.linux-amd64.tar.gz \
     export GOPATH=/opt/ && \
     go get github.com/google/git-appraise/git-appraise && \
     go get github.com/google/git-appraise-web/git-appraise-web && \
+    rm -rf /opt/src/github.com && \
     rm -rf /opt/go1.4.2.linux-amd64.tar.gz && \
     rm -rf /usr/local
 

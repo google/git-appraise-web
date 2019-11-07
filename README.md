@@ -4,7 +4,11 @@ This repository contains a read-only web UI for git-appraise reviews.
 
 ## Try it now
 
-You can see a live demo of the UI running [here](https://git-appraise-web.appspot.com)
+Try it out now with Google Cloud Run:
+
+[![Run on Google Cloud](https://deploy.cloud.run/button.svg)](https://deploy.cloud.run?dir=demo)
+
+You can also see a live demo of the UI running [here](https://git-appraise-web.appspot.com)
 
 ## Disclaimer
 
