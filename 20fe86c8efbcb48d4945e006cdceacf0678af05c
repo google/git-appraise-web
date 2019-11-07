@@ -1,1 +1,3 @@
 {"timestamp":"1573009091","author":"ojarjur@google.com","location":{"commit":"20fe86c8efbcb48d4945e006cdceacf0678af05c"},"resolved":true}
+
+{"timestamp":"1573161441","author":"jonjohnsonjr","description":"Getting this to work with the [cloud run button](https://cloud.google.com/blog/products/serverless/introducing-cloud-run-button-click-to-deploy-your-git-repos-to-google-cloud) could be fun, but maybe there's a reason to keep it on flex?"}
