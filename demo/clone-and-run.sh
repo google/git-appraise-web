@@ -16,8 +16,18 @@
 
 mkdir -p /opt/src
 cd /opt/src
+echo "Cloning the repos in ${CLONE_REPOS}..." >&2
 for repo in ${CLONE_REPOS}; do
-  git clone "${repo}"
+  echo "Cloning the repo \"${repo}\"" >&2
+  git clone --config "remote.origin.fetch=+refs/pull/*:refs/pull/*" --config "remote.origin.fetch=+refs/devtools/*:refs/devtools/*" "${repo}"
 done
 
-supervisorctl start git-appraise-web
+for repo in `find /opt/src -type d -name '.git'`; do
+  cd "$(dirname "${repo}")"
+  /opt/bin/git-appraise pull
+done
+
+echo "Starting the 'git-appraise-web' program" >&2
+cd /opt/src
+/opt/bin/git-appraise-web --port ${PORT}
+

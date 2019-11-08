@@ -24,10 +24,10 @@ RUN apt-get update && apt-get upgrade -y && \
     mkdir -p /var/log/app_engine/custom_logs
 
 ADD supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-ADD clone.sh /opt/bin/clone.sh
+ADD clone-and-run.sh /opt/bin/clone-and-run.sh
 ADD pull.sh /opt/bin/pull.sh
 
-RUN chmod u+x /opt/bin/clone.sh
+RUN chmod u+x /opt/bin/clone-and-run.sh
 RUN chmod u+x /opt/bin/pull.sh
 
 ENV CLONE_REPOS="https://github.com/google/git-appraise https://github.com/google/git-appraise-web"
@@ -42,7 +42,5 @@ RUN wget -O /opt/go1.6.2.linux-amd64.tar.gz \
     rm -rf /opt/src/github.com && \
     rm -rf /opt/go1.4.2.linux-amd64.tar.gz && \
     rm -rf /usr/local
-
-EXPOSE ${PORT}
 
 CMD '/usr/bin/supervisord'
