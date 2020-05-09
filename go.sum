@@ -1,0 +1,6 @@
+github.com/google/git-appraise v0.0.0-20200404013623-45703e83847b h1:2L5JXjTR6chAmgAkSZdPsrEiTkm0ln36d3VzcGeVjAQ=
+github.com/google/git-appraise v0.0.0-20200404013623-45703e83847b/go.mod h1:KfFFhDMvZpwTFSo3XF/SgiVVESM4vbCd0IVtvYjneF8=
+github.com/google/git-appraise-web v0.0.0-20200404012420-174b6d61f1ce h1:LsCiEIJwnbXye9YmyQ86pbhLgiq0dvg8noTPMjDAEdQ=
+github.com/google/git-appraise-web v0.0.0-20200404012420-174b6d61f1ce/go.mod h1:7rb1yDBLEG8Od8WAfxa7OkqezpwcI9Ak8iWD3Wolpmk=
+github.com/jteeuwen/go-bindata v3.0.7+incompatible h1:91Uy4d9SYVr1kyTJ15wJsog+esAZZl7JmEfTkwmhJts=
+github.com/jteeuwen/go-bindata v3.0.7+incompatible/go.mod h1:JVvhzYOiGBnFSYRyV00iY8q7/0PThjIYav1p9h5dmKs=
