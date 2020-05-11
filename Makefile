@@ -14,4 +14,7 @@ assets: deps FORCE
 	rm assets/*~ 2>/dev/null || true
 	$(GOPATH)/bin/go-bindata -pkg assets -o third_party/assets/assets.go assets/
 
+deps:
+	go get -u github.com/jteeuwen/go-bindata/...
+
 FORCE:
