@@ -1,1 +1,3 @@
 {"timestamp":"1589308084","author":"ojarjur","description":"It looks like Travis isn't happy with the switch from explicitly getting the git-appraise library in the Makefile to fetching it via go modules.\r\n\r\nThat, in turn, is because the Go version being used by Travis is 1.11, which does not use modules if the source directory is in the $GOPATH (which it is).\r\n\r\nI'll fix this by updating the Go version in Travis in a follow up PR"}
+
+{"timestamp":"1589308875","author":"ojarjur@google.com","location":{"commit":"6e50f3887"},"resolved":true}
