@@ -1,0 +1,10 @@
+{
+  "name": "git-appraise-web",
+  "env": {
+    "CLONE_REPOS": {
+      "description": "specify a list of git repositories to clone, separated by spaces",
+      "value": "https://github.com/google/git-appraise https://github.com/google/git-appraise-web",
+      "required": true
+    }
+  }
+}
