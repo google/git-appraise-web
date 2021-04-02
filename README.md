@@ -2,10 +2,6 @@
 
 This repository contains a read-only web UI for git-appraise reviews.
 
-## Try it now
-
-You can see a live demo of the UI running [here](https://git-appraise-web.appspot.com)
-
 ## Disclaimer
 
 This is not an official Google product.
@@ -46,3 +42,13 @@ reviews from every git repo under that directory.
 The UI is a webserver which defaults to listening on port 8080. To use a different port, pass it as an argument to the "--port" flag:
 
     ${GOPATH}/bin/git-appraise-web --port=12345
+
+## Try it in App Engine
+
+The repo includes a demo of the UI that runs in App Engine. You can
+try it out with your own project by running
+
+    gcloud app deploy --project ${PROJECT} demo/
+
+Where `${PROJECT}` is set to the ID of a GCP project you own.
+
